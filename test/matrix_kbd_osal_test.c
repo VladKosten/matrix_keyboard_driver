@@ -82,6 +82,8 @@ TEST_SETUP(MATRIX_KBD_OSAL)
     MatrixKbdOsalErr_e status = MatrixKbdOsalInit(&s_osal, &s_parent, s_name);
     TEST_ASSERT_EQUAL(MATRIX_KBD_OSAL_NO_ERR, status);
     s_osal.portable = &s_portableDummy;
+    s_osal.threadHandle = (void*)0x1;
+    s_osal.mutexHandle = (void*)0x1;
 }
 
 TEST_TEAR_DOWN(MATRIX_KBD_OSAL)

@@ -95,28 +95,10 @@ jobs:
       - name: Run CCCC
         run: |
           mkdir -p metrics
-          cccc --outdir=metrics main/*.c main/*.h portable/**/*.c portable/**/*.h || true
+          cccc --outdir=metrics $(find main/ portable/ -name '*.c' -o -name '*.h') || true
+          ls -la metrics/ || echo "No metrics produced"
       - name: Upload metrics
         uses: actions/upload-artifact@v4
         with:
           name: metrics
           path: ./metrics/
-
-  TODO:
-    name: TODO Extract
-    needs: Build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Find TODOs
-        run: |
-          grep -r -n -i -A 1 \
-            --exclude=todo.txt \
-            --exclude-dir={build,.git,.github} \
-            'TODO' > todo.txt || true
-          cat todo.txt
-      - name: Upload TODOs
-        uses: actions/upload-artifact@v4
-        with:
-          name: todo
-          path: ./todo.txt

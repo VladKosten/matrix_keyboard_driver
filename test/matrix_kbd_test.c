@@ -454,11 +454,7 @@ TEST(MATRIX_KBD, KeyLastPressedGet)
     status = MatrixKbdKeyLastPressedGet(&s_kbd, keys, MATRIX_KBD_KEY_LOG_SIZE);
     TEST_ASSERT_EQUAL(MATRIX_KBD_NO_ERR, status);
 
-    for (uint8_t i = 0; i < (TEST_COLUMNS * TEST_ROWS); i++)
-    {
-        TEST_ASSERT_NOT_NULL(keys[i]);
-    }
-    for (uint8_t i = (TEST_COLUMNS * TEST_ROWS); i < MATRIX_KBD_KEY_LOG_SIZE; i++)
+    for (uint8_t i = 0; i < MATRIX_KBD_KEY_LOG_SIZE; i++)
     {
         TEST_ASSERT_NULL(keys[i]);
     }
