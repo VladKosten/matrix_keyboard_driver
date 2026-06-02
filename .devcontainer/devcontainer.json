@@ -1,0 +1,26 @@
+{
+  "name": "Matrix Kbd Driver Dev",
+  "build": {
+    "dockerfile": "../Dockerfile"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.cpptools",
+        "ms-vscode.cmake-tools",
+        "xaver.clang-format",
+        "mhutchie.git-graph",
+        "ms-azuretools.vscode-docker",
+        "cschlosser.doxdocgen",
+        "ms-vscode.hexeditor",
+        "dan-c-underwood.arm",
+        "marus25.cortex-debug"
+      ],
+      "settings": {
+        "clang-format.style": "file"
+      }
+    }
+  },
+  "postCreateCommand": "cmake -B build -DMATRIX_KBD_BUILD_TESTS=ON",
+  "remoteUser": "vscode"
+}

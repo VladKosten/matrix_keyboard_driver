@@ -1,0 +1,122 @@
+name: CI Develop
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+  workflow_dispatch:
+
+jobs:
+  Build:
+    name: Build Test (x86_64)
+    runs-on: ubuntu-latest
+    container:
+      image: vladkosten/embedded_env:latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -B build -DMATRIX_KBD_BUILD_TESTS=ON
+      - name: Build
+        run: cmake --build build
+      - name: Upload test binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-binary
+          path: ./build/test/test_runner/MatrixKbdUnitTestRun
+
+  Analyze:
+    name: Analyze
+    needs: Build
+    runs-on: ubuntu-latest
+    container:
+      image: vladkosten/embedded_env:latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: CppCheck
+        run: |
+          cppcheck --enable=warning,performance,portability \
+                   --inconclusive \
+                   --language=c \
+                   --std=c11 \
+                   --template="[{severity}][{id}] {message} {callstack}" \
+                   --suppress=ConfigurationNotChecked \
+                   --suppress=unreachableCode \
+                   --error-exitcode=1 \
+                   --inline-suppr \
+                   main/ portable/
+
+      - name: MISRA
+        run: |
+          cppcheck --enable=style \
+                   --inconclusive \
+                   --language=c \
+                   --std=c11 \
+                   --addon=misra.py \
+                   --template="[{severity}][{id}] {message} {callstack}" \
+                   --suppress=variableScope \
+                   --suppress=unreadVariable \
+                   --suppress=unreachableCode \
+                   --output-file=misra.txt \
+                   main/ portable/
+          cat misra.txt
+
+      - name: Clang Format
+        run: |
+          find main/ portable/ -name '*.c' -o -name '*.h' | \
+            xargs clang-format --dry-run --Werror
+
+  Test:
+    name: Unit Test
+    needs: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download test binary
+        uses: actions/download-artifact@v4
+        with:
+          name: test-binary
+          path: ./
+      - name: Run tests
+        run: |
+          chmod +x ./MatrixKbdUnitTestRun
+          ./MatrixKbdUnitTestRun
+
+  Metrics:
+    name: Metrics (CCCC)
+    needs: Build
+    runs-on: ubuntu-latest
+    container:
+      image: vladkosten/embedded_env:latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run CCCC
+        run: |
+          mkdir -p metrics
+          cccc --outdir=metrics main/*.c main/*.h portable/**/*.c portable/**/*.h || true
+      - name: Upload metrics
+        uses: actions/upload-artifact@v4
+        with:
+          name: metrics
+          path: ./metrics/
+
+  TODO:
+    name: TODO Extract
+    needs: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Find TODOs
+        run: |
+          grep -r -n -i -A 1 \
+            --exclude=todo.txt \
+            --exclude-dir={build,.git,.github} \
+            'TODO' > todo.txt || true
+          cat todo.txt
+      - name: Upload TODOs
+        uses: actions/upload-artifact@v4
+        with:
+          name: todo
+          path: ./todo.txt

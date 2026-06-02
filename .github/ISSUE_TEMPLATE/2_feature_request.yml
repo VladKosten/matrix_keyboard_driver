@@ -1,0 +1,26 @@
+name:  Feature request
+description: Improvements that will improve portability or performance
+labels: [feature request]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please fill in as much of the following form as you're able.
+  - type: textarea
+    attributes:
+      label: Describe feature .
+      description: Explain what you want to add.
+  - type: textarea
+    attributes:
+      label: What benefits it can bring.
+      description: What are the positives and negatives of this change.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Give example
+      description: Write how to do it or give an example that will show the point.
+  - type: textarea
+    attributes:
+      label: Additional context
+      description: Add any other context about the feature request here.

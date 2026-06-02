@@ -1,0 +1,158 @@
+name: CI Release
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  Build-Test:
+    name: Build Test (x86_64)
+    runs-on: ubuntu-latest
+    container:
+      image: vladkosten/embedded_env:latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -B build -DMATRIX_KBD_BUILD_TESTS=ON
+      - name: Build
+        run: cmake --build build
+      - name: Upload test binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-binary
+          path: ./build/test/test_runner/MatrixKbdUnitTestRun
+
+  Build-M4F:
+    name: Build M4F (arm-none-eabi)
+    runs-on: ubuntu-latest
+    container:
+      image: vladkosten/embedded_env:latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -B build-m4f \
+          -DCMAKE_TOOLCHAIN_FILE=cmake/toolchain-arm-m4f.cmake \
+          -DMATRIX_KBD_BUILD_FOR_PROJECT=ON \
+          -DMATRIX_KBD_BUILD_CORE_ONLY=ON \
+          -DMATRIX_KBD_BUILD_TESTS=OFF
+      - name: Build
+        run: cmake --build build-m4f
+      - name: Upload M4F libraries
+        uses: actions/upload-artifact@v4
+        with:
+          name: m4f-libs
+          path: |
+            ./build-m4f/main/libMatrixKbd.a
+            ./build-m4f/main/libMatrixKbdHal.a
+            ./build-m4f/main/libMatrixKbdOsal.a
+
+  Analyze:
+    name: Analyze
+    needs: Build-Test
+    runs-on: ubuntu-latest
+    container:
+      image: vladkosten/embedded_env:latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: CppCheck
+        run: |
+          cppcheck --enable=warning,performance,portability \
+                   --inconclusive \
+                   --language=c \
+                   --std=c11 \
+                   --template="[{severity}][{id}] {message} {callstack}" \
+                   --suppress=ConfigurationNotChecked \
+                   --suppress=unreachableCode \
+                   --error-exitcode=1 \
+                   --inline-suppr \
+                   main/ portable/
+
+      - name: MISRA
+        run: |
+          cppcheck --enable=style \
+                   --inconclusive \
+                   --language=c \
+                   --std=c11 \
+                   --addon=misra.py \
+                   --template="[{severity}][{id}] {message} {callstack}" \
+                   --suppress=variableScope \
+                   --suppress=unreadVariable \
+                   --suppress=unreachableCode \
+                   --output-file=misra.txt \
+                   main/ portable/
+          cat misra.txt
+
+      - name: Clang Format
+        run: |
+          find main/ portable/ -name '*.c' -o -name '*.h' | \
+            xargs clang-format --dry-run --Werror
+
+  Test:
+    name: Unit Test
+    needs: Build-Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download test binary
+        uses: actions/download-artifact@v4
+        with:
+          name: test-binary
+          path: ./
+      - name: Run tests
+        run: |
+          chmod +x ./MatrixKbdUnitTestRun
+          ./MatrixKbdUnitTestRun
+
+  Deploy:
+    name: Create Release
+    needs:
+      - Analyze
+      - Test
+      - Build-M4F
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version
+        id: version
+        run: |
+          VERSION=$(grep -oP 'VERSION \K[0-9]+\.[0-9]+\.[0-9]+' CMakeLists.txt)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Download M4F libraries
+        uses: actions/download-artifact@v4
+        with:
+          name: m4f-libs
+          path: ./artifacts/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Release v${{ steps.version.outputs.version }}
+          body: |
+            ## Matrix Keyboard Driver v${{ steps.version.outputs.version }}
+
+            ### Changes
+            - See [commits](https://github.com/${{ github.repository }}/compare/${{ github.event.before }}...${{ github.sha }})
+
+            ### Artifacts
+            - `libMatrixKbd.a` — Core driver library (ARM Cortex-M4F)
+            - `libMatrixKbdHal.a` — HAL abstraction library (ARM Cortex-M4F)
+            - `libMatrixKbdOsal.a` — OSAL abstraction library (ARM Cortex-M4F)
+          files: |
+            artifacts/libMatrixKbd.a
+            artifacts/libMatrixKbdHal.a
+            artifacts/libMatrixKbdOsal.a
+          draft: true
+          prerelease: false
