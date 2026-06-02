@@ -13,6 +13,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <string.h>
 
 #include "unity.h"
 #include "unity_fixture.h"
@@ -63,13 +64,14 @@ TEST_SETUP(MATRIX_KBD_HAL)
 {
     memset(&s_hal, 0, sizeof(s_hal));
     s_parent = 0;
-    MatrixKbdErr_e status = MatrixKbdHalInit(&s_hal, &s_parent, s_name);
+    MatrixKbdHalErr_e status = MatrixKbdHalInit(&s_hal, &s_parent, s_name);
     TEST_ASSERT_EQUAL(MATRIX_KBD_HAL_NO_ERR, status);
+    s_hal.portable = &s_portableDummy;
 }
 
 TEST_TEAR_DOWN(MATRIX_KBD_HAL)
 {
-    MatrixKbdErr_e status = MatrixKbdHalDeinit(&s_hal);
+    MatrixKbdHalErr_e status = MatrixKbdHalDeinit(&s_hal);
     TEST_ASSERT_EQUAL(MATRIX_KBD_HAL_NO_ERR, status);
 }
 
@@ -77,13 +79,13 @@ TEST_TEAR_DOWN(MATRIX_KBD_HAL)
 
 TEST(MATRIX_KBD_HAL, Init_NullArgs)
 {
-    MatrixKbdErr_e status = MatrixKbdHalInit(NULL, NULL, NULL);
+    MatrixKbdHalErr_e status = MatrixKbdHalInit(NULL, NULL, NULL);
     TEST_ASSERT_EQUAL(MATRIX_KBD_HAL_INVALID_ARGS_ERR, status);
 }
 
 TEST(MATRIX_KBD_HAL, Deinit_NullArgs)
 {
-    MatrixKbdErr_e status = MatrixKbdHalDeinit(NULL);
+    MatrixKbdHalErr_e status = MatrixKbdHalDeinit(NULL);
     TEST_ASSERT_EQUAL(MATRIX_KBD_HAL_INVALID_ARGS_ERR, status);
 }
 
@@ -91,7 +93,7 @@ TEST(MATRIX_KBD_HAL, ParentGet)
 {
     void* parentToGet = NULL;
 
-    MatrixKbdErr_e status = MatrixKbdHalParentGet(NULL, &parentToGet);
+    MatrixKbdHalErr_e status = MatrixKbdHalParentGet(NULL, &parentToGet);
     TEST_ASSERT_EQUAL(MATRIX_KBD_HAL_INVALID_ARGS_ERR, status);
 
     status = MatrixKbdHalParentGet(&s_hal, NULL);
@@ -106,7 +108,7 @@ TEST(MATRIX_KBD_HAL, ParentSet)
 {
     uint8_t newParent = 42;
 
-    MatrixKbdErr_e status = MatrixKbdHalParentSet(NULL, &newParent);
+    MatrixKbdHalErr_e status = MatrixKbdHalParentSet(NULL, &newParent);
     TEST_ASSERT_EQUAL(MATRIX_KBD_HAL_INVALID_ARGS_ERR, status);
 
     status = MatrixKbdHalParentSet(&s_hal, NULL);
@@ -125,7 +127,7 @@ TEST(MATRIX_KBD_HAL, NameGet)
 {
     char* nameToGet = NULL;
 
-    MatrixKbdErr_e status = MatrixKbdHalNameGet(NULL, &nameToGet);
+    MatrixKbdHalErr_e status = MatrixKbdHalNameGet(NULL, &nameToGet);
     TEST_ASSERT_EQUAL(MATRIX_KBD_HAL_INVALID_ARGS_ERR, status);
 
     status = MatrixKbdHalNameGet(&s_hal, NULL);
@@ -140,7 +142,7 @@ TEST(MATRIX_KBD_HAL, NameSet)
 {
     const char* newName = "NEW_HAL";
 
-    MatrixKbdErr_e status = MatrixKbdHalNameSet(NULL, newName);
+    MatrixKbdHalErr_e status = MatrixKbdHalNameSet(NULL, newName);
     TEST_ASSERT_EQUAL(MATRIX_KBD_HAL_INVALID_ARGS_ERR, status);
 
     status = MatrixKbdHalNameSet(&s_hal, NULL);
@@ -159,7 +161,7 @@ TEST(MATRIX_KBD_HAL, ColumnSelect)
 {
     s_hal.portable = &s_portableDummy;
 
-    MatrixKbdErr_e status = MatrixKbdHalColumnSelect(NULL, 0);
+    MatrixKbdHalErr_e status = MatrixKbdHalColumnSelect(NULL, 0);
     TEST_ASSERT_EQUAL(MATRIX_KBD_HAL_INVALID_ARGS_ERR, status);
 
     const MatrixKbdHalPortable_s* savedPortable = s_hal.portable;
@@ -176,7 +178,7 @@ TEST(MATRIX_KBD_HAL, ColumnDeselect)
 {
     s_hal.portable = &s_portableDummy;
 
-    MatrixKbdErr_e status = MatrixKbdHalColumnDeselect(NULL, 0);
+    MatrixKbdHalErr_e status = MatrixKbdHalColumnDeselect(NULL, 0);
     TEST_ASSERT_EQUAL(MATRIX_KBD_HAL_INVALID_ARGS_ERR, status);
 
     const MatrixKbdHalPortable_s* savedPortable = s_hal.portable;
@@ -194,7 +196,7 @@ TEST(MATRIX_KBD_HAL, RowStateGet)
     bool data = false;
     s_hal.portable = &s_portableDummy;
 
-    MatrixKbdErr_e status = MatrixKbdHalRowStateGet(NULL, 0, &data);
+    MatrixKbdHalErr_e status = MatrixKbdHalRowStateGet(NULL, 0, &data);
     TEST_ASSERT_EQUAL(MATRIX_KBD_HAL_INVALID_ARGS_ERR, status);
 
     status = MatrixKbdHalRowStateGet(&s_hal, 0, NULL);

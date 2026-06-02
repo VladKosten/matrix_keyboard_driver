@@ -13,6 +13,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <string.h>
 
 #include "unity.h"
 #include "unity_fixture.h"
@@ -80,6 +81,7 @@ TEST_SETUP(MATRIX_KBD_OSAL)
     s_parent = 0;
     MatrixKbdOsalErr_e status = MatrixKbdOsalInit(&s_osal, &s_parent, s_name);
     TEST_ASSERT_EQUAL(MATRIX_KBD_OSAL_NO_ERR, status);
+    s_osal.portable = &s_portableDummy;
 }
 
 TEST_TEAR_DOWN(MATRIX_KBD_OSAL)

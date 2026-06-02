@@ -13,6 +13,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <string.h>
 
 #include "unity.h"
 #include "unity_fixture.h"
@@ -324,7 +325,7 @@ TEST(MATRIX_KBD, KeyCbAttach)
     status = MatrixKbdKeyCbAttach(&s_kbd, NULL, MATRIX_KBD_KEY_UNPRESSED_CB_TYPE, cb);
     TEST_ASSERT_EQUAL(MATRIX_KBD_INVALID_ARGS_ERR, status);
 
-    status = MatrixKbdKeyCbAttach(&s_kbd, key, MATRIX_KEY_UNPRESSED_CB_TYPE, cb);
+    status = MatrixKbdKeyCbAttach(&s_kbd, key, MATRIX_KBD_KEY_UNPRESSED_CB_TYPE, cb);
     TEST_ASSERT_EQUAL(MATRIX_KBD_NO_ERR, status);
     TEST_ASSERT_EQUAL_PTR(cb, key->matrixKbdKeyUnpressedCb);
     TEST_ASSERT_NULL(key->matrixKbdKeyPressedCb);
