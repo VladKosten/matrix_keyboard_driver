@@ -1,10 +1,10 @@
 /**
-* \file      matrix_kbd_hal_cmock.c
-* \brief     Matrix Kbd cmock portable module for particular platform
-* \authors   Vladislav Kosten (vladkosten@gmail.com)
-* \warning   A warning may be placed here...
-* \bug       Bug report may be placed here...
-*/
+ * \file      matrix_kbd_hal_cmock.c
+ * \brief     Matrix Kbd cmock portable module for particular platform
+ * \authors   Vladislav Kosten (vladkosten@gmail.com)
+ * \warning   A warning may be placed here...
+ * \bug       Bug report may be placed here...
+ */
 //===============================================================================[ INCLUDE ]========================================================================================
 
 #include <stdint.h>
@@ -16,11 +16,11 @@
 //=====================================================================[ INTERNAL MACRO DEFINITIONS ]===============================================================================
 
 /**
-* \brief MATRIX_KBD_HAL_PORT_ASSERT macro definition
-*/
+ * \brief MATRIX_KBD_HAL_PORT_ASSERT macro definition
+ */
 #ifndef MATRIX_KBD_HAL_PORT_ASSERT
     #ifdef MATRIX_KBD_ASSERT
-        #define MATRIX_KBD_HAL_PORT_ASSERT(cond)  MATRIX_KBD_ASSERT(cond)
+        #define MATRIX_KBD_HAL_PORT_ASSERT(cond) MATRIX_KBD_ASSERT(cond)
     #else
         #define MATRIX_KBD_HAL_PORT_ASSERT(cond)
     #endif
@@ -28,17 +28,16 @@
 
 //====================================================================[ INTERNAL DATA TYPES DEFINITIONS ]===========================================================================
 
-
 //===============================================================[ INTERNAL FUNCTIONS AND OBJECTS DECLARATION ]=====================================================================
 
 /**
  * \brief Table of ported functions for correct operation of HAL level
  */
 static const MatrixKbdHalPortable_s matrixKbdHalPortableFuncTab =
-{
-    .columnSelect       = MatrixKbdHalPortColumnSelect,
-    .columnDeselect     = MatrixKbdHalPortColumnDeselect,
-    .rowStateGet        = MatrixKbdHalPortRowStateGet,
+    {
+        .columnSelect = MatrixKbdHalPortColumnSelect,
+        .columnDeselect = MatrixKbdHalPortColumnDeselect,
+        .rowStateGet = MatrixKbdHalPortRowStateGet,
 
 };
 
@@ -56,26 +55,26 @@ static const MatrixKbdHalPortable_s matrixKbdHalPortableFuncTab =
  * \return MatrixKbdHalPortErr_e  - error code. non-zero = an error has occurred;
  */
 MatrixKbdHalPortErr_e MatrixKbdHalPortInit(MatrixKbdHalPort_s* const halPort,
-                                                const uint8_t countColumns,
-                                                const uint8_t countRows,
-                                                const uint8_t* const columnsPin,
-                                                const uint8_t* const rowsPin,
-                                                const void* const parent,
-                                                const char* const name)
+                                           const uint8_t countColumns,
+                                           const uint8_t countRows,
+                                           const uint8_t* const columnsPin,
+                                           const uint8_t* const rowsPin,
+                                           const void* const parent,
+                                           const char* const name)
 {
     /* Checking of params */
-    if((NULL == halPort) ||
-       (NULL == columnsPin) ||
-       (NULL == rowsPin) ||
-       (0 >= countColumns) ||
-       (0 >= countRows))
+    if ((NULL == halPort) ||
+        (NULL == columnsPin) ||
+        (NULL == rowsPin) ||
+        (0 >= countColumns) ||
+        (0 >= countRows))
     {
-        return MATRIX_KBD_HAL_PORT_INVALID_ARGS_ERR; // Exit: Error: Invalid args
+        return MATRIX_KBD_HAL_PORT_INVALID_ARGS_ERR;    // Exit: Error: Invalid args
     }
 
     /* Init the HAL base object */
-    MatrixKbdHalErr_e halStatus = MatrixKbdHalInit(&halPort->base,parent, name);
-    if(halStatus != MATRIX_KBD_HAL_NO_ERR)
+    MatrixKbdHalErr_e halStatus = MatrixKbdHalInit(&halPort->base, parent, name);
+    if (halStatus != MATRIX_KBD_HAL_NO_ERR)
     {
         return MATRIX_KBD_HAL_PORT_INIT_ERR;
     }
@@ -83,7 +82,7 @@ MatrixKbdHalPortErr_e MatrixKbdHalPortInit(MatrixKbdHalPort_s* const halPort,
     /* Init the portable methods table */
     halPort->base.portable = &matrixKbdHalPortableFuncTab;
 
-    return MATRIX_KBD_HAL_PORT_NO_ERR; // Exit: no errors
+    return MATRIX_KBD_HAL_PORT_NO_ERR;    // Exit: no errors
 }
 
 /**
@@ -96,7 +95,7 @@ MatrixKbdHalPortErr_e MatrixKbdHalPortDeinit(MatrixKbdHalPort_s* const halPort)
 {
     if (NULL == halPort)
     {
-        return MATRIX_KBD_HAL_PORT_INVALID_ARGS_ERR; // Exit: Error: Invalid args
+        return MATRIX_KBD_HAL_PORT_INVALID_ARGS_ERR;    // Exit: Error: Invalid args
     }
 
     halPort->columnsPin = NULL;
@@ -105,9 +104,10 @@ MatrixKbdHalPortErr_e MatrixKbdHalPortDeinit(MatrixKbdHalPort_s* const halPort)
     halPort->numberOfRows = 0;
 
     MatrixKbdHalErr_e status = MatrixKbdHalDeinit(&halPort->base);
-    (void)status;
+    (void) status;
     MATRIX_KBD_HAL_PORT_ASSERT(!status);
 
-    return MATRIX_KBD_HAL_PORT_NO_ERR;              // Exit: no errors
+    return MATRIX_KBD_HAL_PORT_NO_ERR;    // Exit: no errors
 }
+
 //============================================================================[PRIVATE FUNCTIONS]===================================================================================
