@@ -53,14 +53,14 @@ static MatrixKbdHalErr_e columnSelectError(const void* hal, const uint8_t number
 {
     (void) hal;
     (void) number;
-    return MATRIX_KBD_HAL_PORT_IO_ERR;
+    return MATRIX_KBD_HAL_PORT_LAYER_ERR;
 }
 
 static MatrixKbdHalErr_e columnDeselectError(const void* hal, const uint8_t number)
 {
     (void) hal;
     (void) number;
-    return MATRIX_KBD_HAL_PORT_IO_ERR;
+    return MATRIX_KBD_HAL_PORT_LAYER_ERR;
 }
 
 static MatrixKbdHalErr_e rowStateGetError(const void* hal, const uint8_t number, bool* data)
@@ -68,7 +68,7 @@ static MatrixKbdHalErr_e rowStateGetError(const void* hal, const uint8_t number,
     (void) hal;
     (void) number;
     (void) data;
-    return MATRIX_KBD_HAL_PORT_IO_ERR;
+    return MATRIX_KBD_HAL_PORT_LAYER_ERR;
 }
 
 static const MatrixKbdHalPortable_s s_portableDummy =
