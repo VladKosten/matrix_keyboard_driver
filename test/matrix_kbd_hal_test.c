@@ -49,6 +49,28 @@ static MatrixKbdHalErr_e rowStateGetDummy(const void* hal, const uint8_t number,
     return MATRIX_KBD_HAL_NO_ERR;
 }
 
+static MatrixKbdHalErr_e columnSelectError(const void* hal, const uint8_t number)
+{
+    (void) hal;
+    (void) number;
+    return MATRIX_KBD_HAL_PORT_IO_ERR;
+}
+
+static MatrixKbdHalErr_e columnDeselectError(const void* hal, const uint8_t number)
+{
+    (void) hal;
+    (void) number;
+    return MATRIX_KBD_HAL_PORT_IO_ERR;
+}
+
+static MatrixKbdHalErr_e rowStateGetError(const void* hal, const uint8_t number, bool* data)
+{
+    (void) hal;
+    (void) number;
+    (void) data;
+    return MATRIX_KBD_HAL_PORT_IO_ERR;
+}
+
 static const MatrixKbdHalPortable_s s_portableDummy =
     {
         .columnSelect = columnSelectDummy,
@@ -170,6 +192,16 @@ TEST(MATRIX_KBD_HAL, ColumnSelect)
     TEST_ASSERT_EQUAL(MATRIX_KBD_HAL_NOT_INIT_ERR, status);
     s_hal.portable = savedPortable;
 
+    const MatrixKbdHalPortable_s errorPortable = {
+        .columnSelect = columnSelectError,
+        .columnDeselect = columnDeselectDummy,
+        .rowStateGet = rowStateGetDummy,
+    };
+    s_hal.portable = &errorPortable;
+    status = MatrixKbdHalColumnSelect(&s_hal, 0);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_HAL_PORT_LAYER_ERR, status);
+    s_hal.portable = savedPortable;
+
     status = MatrixKbdHalColumnSelect(&s_hal, 0);
     TEST_ASSERT_EQUAL(MATRIX_KBD_HAL_NO_ERR, status);
 }
@@ -185,6 +217,16 @@ TEST(MATRIX_KBD_HAL, ColumnDeselect)
     s_hal.portable = NULL;
     status = MatrixKbdHalColumnDeselect(&s_hal, 0);
     TEST_ASSERT_EQUAL(MATRIX_KBD_HAL_NOT_INIT_ERR, status);
+    s_hal.portable = savedPortable;
+
+    const MatrixKbdHalPortable_s errorPortable = {
+        .columnSelect = columnSelectDummy,
+        .columnDeselect = columnDeselectError,
+        .rowStateGet = rowStateGetDummy,
+    };
+    s_hal.portable = &errorPortable;
+    status = MatrixKbdHalColumnDeselect(&s_hal, 0);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_HAL_PORT_LAYER_ERR, status);
     s_hal.portable = savedPortable;
 
     status = MatrixKbdHalColumnDeselect(&s_hal, 0);
@@ -208,9 +250,56 @@ TEST(MATRIX_KBD_HAL, RowStateGet)
     TEST_ASSERT_EQUAL(MATRIX_KBD_HAL_NOT_INIT_ERR, status);
     s_hal.portable = savedPortable;
 
+    const MatrixKbdHalPortable_s errorPortable = {
+        .columnSelect = columnSelectDummy,
+        .columnDeselect = columnDeselectDummy,
+        .rowStateGet = rowStateGetError,
+    };
+    s_hal.portable = &errorPortable;
+    status = MatrixKbdHalRowStateGet(&s_hal, 0, &data);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_HAL_PORT_LAYER_ERR, status);
+    s_hal.portable = savedPortable;
+
     status = MatrixKbdHalRowStateGet(&s_hal, 0, &data);
     TEST_ASSERT_EQUAL(MATRIX_KBD_HAL_NO_ERR, status);
     TEST_ASSERT_TRUE(data);
+}
+
+TEST(MATRIX_KBD_HAL, ColumnSelect_NullFunc)
+{
+    const MatrixKbdHalPortable_s partialPortable = {
+        .columnSelect = NULL,
+        .columnDeselect = columnDeselectDummy,
+        .rowStateGet = rowStateGetDummy,
+    };
+    s_hal.portable = &partialPortable;
+    MatrixKbdHalErr_e status = MatrixKbdHalColumnSelect(&s_hal, 0);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_HAL_NOT_INIT_ERR, status);
+}
+
+TEST(MATRIX_KBD_HAL, ColumnDeselect_NullFunc)
+{
+    const MatrixKbdHalPortable_s partialPortable = {
+        .columnSelect = columnSelectDummy,
+        .columnDeselect = NULL,
+        .rowStateGet = rowStateGetDummy,
+    };
+    s_hal.portable = &partialPortable;
+    MatrixKbdHalErr_e status = MatrixKbdHalColumnDeselect(&s_hal, 0);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_HAL_NOT_INIT_ERR, status);
+}
+
+TEST(MATRIX_KBD_HAL, RowStateGet_NullFunc)
+{
+    const MatrixKbdHalPortable_s partialPortable = {
+        .columnSelect = columnSelectDummy,
+        .columnDeselect = columnDeselectDummy,
+        .rowStateGet = NULL,
+    };
+    s_hal.portable = &partialPortable;
+    bool data = false;
+    MatrixKbdHalErr_e status = MatrixKbdHalRowStateGet(&s_hal, 0, &data);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_HAL_NOT_INIT_ERR, status);
 }
 
 /*=============================[ TEST GROUP RUNNER ]========================*/
@@ -226,4 +315,7 @@ TEST_GROUP_RUNNER(MATRIX_KBD_HAL)
     RUN_TEST_CASE(MATRIX_KBD_HAL, ColumnSelect);
     RUN_TEST_CASE(MATRIX_KBD_HAL, ColumnDeselect);
     RUN_TEST_CASE(MATRIX_KBD_HAL, RowStateGet);
+    RUN_TEST_CASE(MATRIX_KBD_HAL, ColumnSelect_NullFunc);
+    RUN_TEST_CASE(MATRIX_KBD_HAL, ColumnDeselect_NullFunc);
+    RUN_TEST_CASE(MATRIX_KBD_HAL, RowStateGet_NullFunc);
 }

@@ -62,6 +62,37 @@ static MatrixKbdOsalErr_e unlockDummy(const void* osal)
     return MATRIX_KBD_OSAL_NO_ERR;
 }
 
+static MatrixKbdOsalErr_e threadResumeError(const void* osal)
+{
+    (void) osal;
+    return MATRIX_KBD_OSAL_PORT_LAYER_ERR;
+}
+
+static MatrixKbdOsalErr_e threadSuspendError(const void* osal)
+{
+    (void) osal;
+    return MATRIX_KBD_OSAL_PORT_LAYER_ERR;
+}
+
+static MatrixKbdOsalErr_e threadDelayError(const void* osal, const uint32_t msDelay)
+{
+    (void) osal;
+    (void) msDelay;
+    return MATRIX_KBD_OSAL_PORT_LAYER_ERR;
+}
+
+static MatrixKbdOsalErr_e lockError(const void* osal)
+{
+    (void) osal;
+    return MATRIX_KBD_OSAL_PORT_LAYER_ERR;
+}
+
+static MatrixKbdOsalErr_e unlockError(const void* osal)
+{
+    (void) osal;
+    return MATRIX_KBD_OSAL_PORT_LAYER_ERR;
+}
+
 static const MatrixKbdOsalPortable_s s_portableDummy =
     {
         .threadResume = threadResumeDummy,
@@ -185,6 +216,24 @@ TEST(MATRIX_KBD_OSAL, ThreadResume)
     TEST_ASSERT_EQUAL(MATRIX_KBD_OSAL_NOT_INIT_ERR, status);
     s_osal.portable = savedPortable;
 
+    void* savedHandle = s_osal.threadHandle;
+    s_osal.threadHandle = NULL;
+    status = MatrixKbdOsalThreadResume(&s_osal);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_OSAL_NOT_INIT_ERR, status);
+    s_osal.threadHandle = savedHandle;
+
+    const MatrixKbdOsalPortable_s errorPortable = {
+        .threadResume = threadResumeError,
+        .threadSuspend = threadSuspendDummy,
+        .threadDelay = threadDelayDummy,
+        .lock = lockDummy,
+        .unlock = unlockDummy,
+    };
+    s_osal.portable = &errorPortable;
+    status = MatrixKbdOsalThreadResume(&s_osal);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_OSAL_PORT_LAYER_ERR, status);
+    s_osal.portable = savedPortable;
+
     status = MatrixKbdOsalThreadResume(&s_osal);
     TEST_ASSERT_EQUAL(MATRIX_KBD_OSAL_NO_ERR, status);
 }
@@ -198,6 +247,24 @@ TEST(MATRIX_KBD_OSAL, ThreadSuspend)
     s_osal.portable = NULL;
     status = MatrixKbdOsalThreadSuspend(&s_osal);
     TEST_ASSERT_EQUAL(MATRIX_KBD_OSAL_NOT_INIT_ERR, status);
+    s_osal.portable = savedPortable;
+
+    void* savedHandle = s_osal.threadHandle;
+    s_osal.threadHandle = NULL;
+    status = MatrixKbdOsalThreadSuspend(&s_osal);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_OSAL_NOT_INIT_ERR, status);
+    s_osal.threadHandle = savedHandle;
+
+    const MatrixKbdOsalPortable_s errorPortable = {
+        .threadResume = threadResumeDummy,
+        .threadSuspend = threadSuspendError,
+        .threadDelay = threadDelayDummy,
+        .lock = lockDummy,
+        .unlock = unlockDummy,
+    };
+    s_osal.portable = &errorPortable;
+    status = MatrixKbdOsalThreadSuspend(&s_osal);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_OSAL_PORT_LAYER_ERR, status);
     s_osal.portable = savedPortable;
 
     status = MatrixKbdOsalThreadSuspend(&s_osal);
@@ -240,6 +307,24 @@ TEST(MATRIX_KBD_OSAL, ThreadDelay)
     TEST_ASSERT_EQUAL(MATRIX_KBD_OSAL_NOT_INIT_ERR, status);
     s_osal.portable = savedPortable;
 
+    void* savedHandle = s_osal.threadHandle;
+    s_osal.threadHandle = NULL;
+    status = MatrixKbdOsalThreadDelay(&s_osal, 100);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_OSAL_NOT_INIT_ERR, status);
+    s_osal.threadHandle = savedHandle;
+
+    const MatrixKbdOsalPortable_s errorPortable = {
+        .threadResume = threadResumeDummy,
+        .threadSuspend = threadSuspendDummy,
+        .threadDelay = threadDelayError,
+        .lock = lockDummy,
+        .unlock = unlockDummy,
+    };
+    s_osal.portable = &errorPortable;
+    status = MatrixKbdOsalThreadDelay(&s_osal, 100);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_OSAL_PORT_LAYER_ERR, status);
+    s_osal.portable = savedPortable;
+
     status = MatrixKbdOsalThreadDelay(&s_osal, 100);
     TEST_ASSERT_EQUAL(MATRIX_KBD_OSAL_NO_ERR, status);
 }
@@ -255,6 +340,24 @@ TEST(MATRIX_KBD_OSAL, Lock)
     TEST_ASSERT_EQUAL(MATRIX_KBD_OSAL_NOT_INIT_ERR, status);
     s_osal.portable = savedPortable;
 
+    void* savedHandle = s_osal.mutexHandle;
+    s_osal.mutexHandle = NULL;
+    status = MatrixKbdOsalLock(&s_osal);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_OSAL_NOT_INIT_ERR, status);
+    s_osal.mutexHandle = savedHandle;
+
+    const MatrixKbdOsalPortable_s errorPortable = {
+        .threadResume = threadResumeDummy,
+        .threadSuspend = threadSuspendDummy,
+        .threadDelay = threadDelayDummy,
+        .lock = lockError,
+        .unlock = unlockDummy,
+    };
+    s_osal.portable = &errorPortable;
+    status = MatrixKbdOsalLock(&s_osal);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_OSAL_PORT_LAYER_ERR, status);
+    s_osal.portable = savedPortable;
+
     status = MatrixKbdOsalLock(&s_osal);
     TEST_ASSERT_EQUAL(MATRIX_KBD_OSAL_NO_ERR, status);
 }
@@ -268,6 +371,24 @@ TEST(MATRIX_KBD_OSAL, Unlock)
     s_osal.portable = NULL;
     status = MatrixKbdOsalUnlock(&s_osal);
     TEST_ASSERT_EQUAL(MATRIX_KBD_OSAL_NOT_INIT_ERR, status);
+    s_osal.portable = savedPortable;
+
+    void* savedHandle = s_osal.mutexHandle;
+    s_osal.mutexHandle = NULL;
+    status = MatrixKbdOsalUnlock(&s_osal);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_OSAL_NOT_INIT_ERR, status);
+    s_osal.mutexHandle = savedHandle;
+
+    const MatrixKbdOsalPortable_s errorPortable = {
+        .threadResume = threadResumeDummy,
+        .threadSuspend = threadSuspendDummy,
+        .threadDelay = threadDelayDummy,
+        .lock = lockDummy,
+        .unlock = unlockError,
+    };
+    s_osal.portable = &errorPortable;
+    status = MatrixKbdOsalUnlock(&s_osal);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_OSAL_PORT_LAYER_ERR, status);
     s_osal.portable = savedPortable;
 
     status = MatrixKbdOsalUnlock(&s_osal);

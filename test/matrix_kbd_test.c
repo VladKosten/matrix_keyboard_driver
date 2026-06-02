@@ -126,6 +126,36 @@ TEST(MATRIX_KBD, Init_NullArgs)
     TEST_ASSERT_EQUAL(MATRIX_KBD_INVALID_ARGS_ERR, status);
 }
 
+TEST(MATRIX_KBD, Init_RowsZero)
+{
+    fullDeinit();
+    MatrixKbdErr_e status = MatrixKbdInit(&s_kbd, (MatrixKbdOsal_s*) &s_osal, (MatrixKbdHal_s*) &s_hal, 0, TEST_COLUMNS, &s_parent, s_name);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_INVALID_ARGS_ERR, status);
+    fullInit();
+}
+
+TEST(MATRIX_KBD, Init_ColsZero)
+{
+    fullDeinit();
+    MatrixKbdErr_e status = MatrixKbdInit(&s_kbd, (MatrixKbdOsal_s*) &s_osal, (MatrixKbdHal_s*) &s_hal, TEST_ROWS, 0, &s_parent, s_name);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_INVALID_ARGS_ERR, status);
+    fullInit();
+}
+
+TEST(MATRIX_KBD, Init_ColsOverflow)
+{
+    fullDeinit();
+    MatrixKbdErr_e status = MatrixKbdInit(&s_kbd, (MatrixKbdOsal_s*) &s_osal, (MatrixKbdHal_s*) &s_hal, TEST_ROWS, MATRIX_KBD_COLUMNS_COUNT_MAX + 1, &s_parent, s_name);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_INVALID_ARGS_ERR, status);
+    fullInit();
+}
+
+TEST(MATRIX_KBD, Deinit_NullArgs)
+{
+    MatrixKbdErr_e status = MatrixKbdDeinit(NULL);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_INVALID_ARGS_ERR, status);
+}
+
 TEST(MATRIX_KBD, ParentGet)
 {
     void* parentToGet = NULL;
@@ -252,6 +282,12 @@ TEST(MATRIX_KBD, KeyGet)
     status = MatrixKbdKeyGet(&s_kbd, 0, 0, &key);
     TEST_ASSERT_EQUAL(MATRIX_KBD_NO_ERR, status);
     TEST_ASSERT_EQUAL_PTR(&s_kbd.keys [0][0], key);
+
+    status = MatrixKbdKeyGet(&s_kbd, MATRIX_KBD_COLUMNS_COUNT_MAX + 1, 0, &key);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_INVALID_ARGS_ERR, status);
+
+    status = MatrixKbdKeyGet(&s_kbd, 0, MATRIX_KBD_ROWS_COUNT_MAX + 1, &key);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_INVALID_ARGS_ERR, status);
 }
 
 TEST(MATRIX_KBD, KeyGetById)
@@ -267,6 +303,9 @@ TEST(MATRIX_KBD, KeyGetById)
     status = MatrixKbdKeyGetById(&s_kbd, 0, &key);
     TEST_ASSERT_EQUAL(MATRIX_KBD_NO_ERR, status);
     TEST_ASSERT_EQUAL_PTR(&s_kbd.keys [0][0], key);
+
+    status = MatrixKbdKeyGetById(&s_kbd, 255, &key);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_INVALID_ARGS_ERR, status);
 }
 
 TEST(MATRIX_KBD, KeyIdGet)
@@ -285,6 +324,13 @@ TEST(MATRIX_KBD, KeyIdGet)
 
     status = MatrixKbdKeyIdGet(&s_kbd, key, &id);
     TEST_ASSERT_EQUAL(MATRIX_KBD_NO_ERR, status);
+
+    MatrixKbd_s otherKbd;
+    memset(&otherKbd, 0, sizeof(otherKbd));
+    MatrixKbdKey_s foreignKey;
+    foreignKey.parent = &otherKbd;
+    status = MatrixKbdKeyIdGet(&s_kbd, &foreignKey, &id);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_INVALID_ARGS_ERR, status);
 }
 
 TEST(MATRIX_KBD, KeyIdSet)
@@ -305,6 +351,13 @@ TEST(MATRIX_KBD, KeyIdSet)
     status = MatrixKbdKeyIdGet(&s_kbd, key, &id);
     TEST_ASSERT_EQUAL(MATRIX_KBD_NO_ERR, status);
     TEST_ASSERT_EQUAL_UINT8(newId, id);
+
+    MatrixKbd_s otherKbd;
+    memset(&otherKbd, 0, sizeof(otherKbd));
+    MatrixKbdKey_s foreignKey;
+    foreignKey.parent = &otherKbd;
+    status = MatrixKbdKeyIdSet(&s_kbd, &foreignKey, 1);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_INVALID_ARGS_ERR, status);
 }
 
 TEST(MATRIX_KBD, KeyCbAttach)
@@ -324,6 +377,39 @@ TEST(MATRIX_KBD, KeyCbAttach)
     TEST_ASSERT_NULL(key->matrixKbdKeyPressedCb);
     TEST_ASSERT_NULL(key->matrixKbdKeyPressingCb);
     TEST_ASSERT_NULL(key->matrixKbdKeyReleasedCb);
+
+    status = MatrixKbdKeyCbAttach(&s_kbd, key, MATRIX_KBD_KEY_PRESSED_CB_TYPE, cb);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_NO_ERR, status);
+    TEST_ASSERT_EQUAL_PTR(cb, key->matrixKbdKeyPressedCb);
+
+    status = MatrixKbdKeyCbAttach(&s_kbd, key, MATRIX_KBD_KEY_PRESSING_CB_TYPE, cb);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_NO_ERR, status);
+    TEST_ASSERT_EQUAL_PTR(cb, key->matrixKbdKeyPressingCb);
+
+    status = MatrixKbdKeyCbAttach(&s_kbd, key, MATRIX_KBD_KEY_RELEASED_CB_TYPE, cb);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_NO_ERR, status);
+    TEST_ASSERT_EQUAL_PTR(cb, key->matrixKbdKeyReleasedCb);
+
+    status = MatrixKbdKeyCbAttach(&s_kbd, key, 0x00, cb);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_INVALID_ARGS_ERR, status);
+
+    MatrixKbd_s otherKbd;
+    memset(&otherKbd, 0, sizeof(otherKbd));
+    MatrixKbdKey_s foreignKey;
+    foreignKey.parent = &otherKbd;
+    status = MatrixKbdKeyCbAttach(&s_kbd, &foreignKey, MATRIX_KBD_KEY_UNPRESSED_CB_TYPE, cb);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_INVALID_ARGS_ERR, status);
+}
+
+TEST(MATRIX_KBD, KeyCbAttach_NotInit)
+{
+    MatrixKbdKey_s* key = &s_kbd.keys [0][0];
+    MatrixKbdKeyCb_f cb = (MatrixKbdKeyCb_f) 0x12345678;
+    const MatrixKbdOsal_s* savedOsal = s_kbd.osal;
+    s_kbd.osal = NULL;
+    MatrixKbdErr_e status = MatrixKbdKeyCbAttach(&s_kbd, key, MATRIX_KBD_KEY_UNPRESSED_CB_TYPE, cb);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_NOT_INIT_ERR, status);
+    s_kbd.osal = savedOsal;
 }
 
 TEST(MATRIX_KBD, KeyCbDetach)
@@ -332,6 +418,9 @@ TEST(MATRIX_KBD, KeyCbDetach)
     MatrixKbdKeyCb_f cb = (MatrixKbdKeyCb_f) 0x12345678;
 
     key->matrixKbdKeyUnpressedCb = cb;
+    key->matrixKbdKeyPressedCb = cb;
+    key->matrixKbdKeyPressingCb = cb;
+    key->matrixKbdKeyReleasedCb = cb;
 
     MatrixKbdErr_e status = MatrixKbdKeyCbDetach(NULL, key, MATRIX_KBD_KEY_UNPRESSED_CB_TYPE);
     TEST_ASSERT_EQUAL(MATRIX_KBD_INVALID_ARGS_ERR, status);
@@ -342,6 +431,38 @@ TEST(MATRIX_KBD, KeyCbDetach)
     status = MatrixKbdKeyCbDetach(&s_kbd, key, MATRIX_KBD_KEY_UNPRESSED_CB_TYPE);
     TEST_ASSERT_EQUAL(MATRIX_KBD_NO_ERR, status);
     TEST_ASSERT_NULL(key->matrixKbdKeyUnpressedCb);
+
+    status = MatrixKbdKeyCbDetach(&s_kbd, key, MATRIX_KBD_KEY_PRESSED_CB_TYPE);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_NO_ERR, status);
+    TEST_ASSERT_NULL(key->matrixKbdKeyPressedCb);
+
+    status = MatrixKbdKeyCbDetach(&s_kbd, key, MATRIX_KBD_KEY_PRESSING_CB_TYPE);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_NO_ERR, status);
+    TEST_ASSERT_NULL(key->matrixKbdKeyPressingCb);
+
+    status = MatrixKbdKeyCbDetach(&s_kbd, key, MATRIX_KBD_KEY_RELEASED_CB_TYPE);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_NO_ERR, status);
+    TEST_ASSERT_NULL(key->matrixKbdKeyReleasedCb);
+
+    status = MatrixKbdKeyCbDetach(&s_kbd, key, 0x00);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_INVALID_ARGS_ERR, status);
+
+    MatrixKbd_s otherKbd;
+    memset(&otherKbd, 0, sizeof(otherKbd));
+    MatrixKbdKey_s foreignKey;
+    foreignKey.parent = &otherKbd;
+    status = MatrixKbdKeyCbDetach(&s_kbd, &foreignKey, MATRIX_KBD_KEY_UNPRESSED_CB_TYPE);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_INVALID_ARGS_ERR, status);
+}
+
+TEST(MATRIX_KBD, KeyCbDetach_NotInit)
+{
+    MatrixKbdKey_s* key = &s_kbd.keys [0][0];
+    const MatrixKbdOsal_s* savedOsal = s_kbd.osal;
+    s_kbd.osal = NULL;
+    MatrixKbdErr_e status = MatrixKbdKeyCbDetach(&s_kbd, key, MATRIX_KBD_KEY_UNPRESSED_CB_TYPE);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_NOT_INIT_ERR, status);
+    s_kbd.osal = savedOsal;
 }
 
 TEST(MATRIX_KBD, AllKeyCbAttach)
@@ -354,11 +475,39 @@ TEST(MATRIX_KBD, AllKeyCbAttach)
     status = MatrixKbdAllKeyCbAttach(&s_kbd, MATRIX_KBD_KEY_UNPRESSED_CB_TYPE, cb);
     TEST_ASSERT_EQUAL(MATRIX_KBD_NO_ERR, status);
     TEST_ASSERT_EQUAL_PTR(cb, s_kbd.matrixKbdAllKeyUnpressedCb);
+
+    status = MatrixKbdAllKeyCbAttach(&s_kbd, MATRIX_KBD_KEY_PRESSED_CB_TYPE, cb);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_NO_ERR, status);
+    TEST_ASSERT_EQUAL_PTR(cb, s_kbd.matrixKbdAllKeyPressedCb);
+
+    status = MatrixKbdAllKeyCbAttach(&s_kbd, MATRIX_KBD_KEY_PRESSING_CB_TYPE, cb);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_NO_ERR, status);
+    TEST_ASSERT_EQUAL_PTR(cb, s_kbd.matrixKbdAllKeyPressingCb);
+
+    status = MatrixKbdAllKeyCbAttach(&s_kbd, MATRIX_KBD_KEY_RELEASED_CB_TYPE, cb);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_NO_ERR, status);
+    TEST_ASSERT_EQUAL_PTR(cb, s_kbd.matrixKbdAllKeyReleasedCb);
+
+    status = MatrixKbdAllKeyCbAttach(&s_kbd, 0x00, cb);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_INVALID_ARGS_ERR, status);
+}
+
+TEST(MATRIX_KBD, AllKeyCbAttach_NotInit)
+{
+    MatrixKbdKeyCb_f cb = (MatrixKbdKeyCb_f) 0x12345678;
+    const MatrixKbdOsal_s* savedOsal = s_kbd.osal;
+    s_kbd.osal = NULL;
+    MatrixKbdErr_e status = MatrixKbdAllKeyCbAttach(&s_kbd, MATRIX_KBD_KEY_UNPRESSED_CB_TYPE, cb);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_NOT_INIT_ERR, status);
+    s_kbd.osal = savedOsal;
 }
 
 TEST(MATRIX_KBD, AllKeyCbDetach)
 {
     s_kbd.matrixKbdAllKeyUnpressedCb = (MatrixKbdKeyCb_f) 0x12345678;
+    s_kbd.matrixKbdAllKeyPressedCb = (MatrixKbdKeyCb_f) 0x12345678;
+    s_kbd.matrixKbdAllKeyPressingCb = (MatrixKbdKeyCb_f) 0x12345678;
+    s_kbd.matrixKbdAllKeyReleasedCb = (MatrixKbdKeyCb_f) 0x12345678;
 
     MatrixKbdErr_e status = MatrixKbdAllKeyCbDetach(NULL, MATRIX_KBD_KEY_UNPRESSED_CB_TYPE);
     TEST_ASSERT_EQUAL(MATRIX_KBD_INVALID_ARGS_ERR, status);
@@ -366,6 +515,21 @@ TEST(MATRIX_KBD, AllKeyCbDetach)
     status = MatrixKbdAllKeyCbDetach(&s_kbd, MATRIX_KBD_KEY_UNPRESSED_CB_TYPE);
     TEST_ASSERT_EQUAL(MATRIX_KBD_NO_ERR, status);
     TEST_ASSERT_NULL(s_kbd.matrixKbdAllKeyUnpressedCb);
+
+    status = MatrixKbdAllKeyCbDetach(&s_kbd, MATRIX_KBD_KEY_PRESSED_CB_TYPE);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_NO_ERR, status);
+    TEST_ASSERT_NULL(s_kbd.matrixKbdAllKeyPressedCb);
+
+    status = MatrixKbdAllKeyCbDetach(&s_kbd, MATRIX_KBD_KEY_PRESSING_CB_TYPE);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_NO_ERR, status);
+    TEST_ASSERT_NULL(s_kbd.matrixKbdAllKeyPressingCb);
+
+    status = MatrixKbdAllKeyCbDetach(&s_kbd, MATRIX_KBD_KEY_RELEASED_CB_TYPE);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_NO_ERR, status);
+    TEST_ASSERT_NULL(s_kbd.matrixKbdAllKeyReleasedCb);
+
+    status = MatrixKbdAllKeyCbDetach(&s_kbd, 0x00);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_INVALID_ARGS_ERR, status);
 }
 
 TEST(MATRIX_KBD, KeyStateGet)
@@ -384,6 +548,13 @@ TEST(MATRIX_KBD, KeyStateGet)
 
     status = MatrixKbdKeyStateGet(&s_kbd, key, &state);
     TEST_ASSERT_EQUAL(MATRIX_KBD_NO_ERR, status);
+
+    MatrixKbd_s otherKbd;
+    memset(&otherKbd, 0, sizeof(otherKbd));
+    MatrixKbdKey_s foreignKey;
+    foreignKey.parent = &otherKbd;
+    status = MatrixKbdKeyStateGet(&s_kbd, &foreignKey, &state);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_INVALID_ARGS_ERR, status);
 }
 
 TEST(MATRIX_KBD, KeysStateGet)
@@ -398,6 +569,12 @@ TEST(MATRIX_KBD, KeysStateGet)
 
     status = MatrixKbdKeysStateGet(&s_kbd, &state);
     TEST_ASSERT_EQUAL(MATRIX_KBD_NO_ERR, status);
+
+    const MatrixKbdOsal_s* savedOsal = s_kbd.osal;
+    s_kbd.osal = NULL;
+    status = MatrixKbdKeysStateGet(&s_kbd, &state);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_NOT_INIT_ERR, status);
+    s_kbd.osal = savedOsal;
 }
 
 TEST(MATRIX_KBD, ScanStart)
@@ -444,6 +621,9 @@ TEST(MATRIX_KBD, KeyLastPressedGet)
     status = MatrixKbdKeyLastPressedGet(&s_kbd, NULL, MATRIX_KBD_KEY_LOG_SIZE);
     TEST_ASSERT_EQUAL(MATRIX_KBD_INVALID_ARGS_ERR, status);
 
+    status = MatrixKbdKeyLastPressedGet(&s_kbd, keys, 0);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_INVALID_ARGS_ERR, status);
+
     status = MatrixKbdKeyLastPressedGet(&s_kbd, keys, MATRIX_KBD_KEY_LOG_SIZE);
     TEST_ASSERT_EQUAL(MATRIX_KBD_NO_ERR, status);
 
@@ -451,6 +631,12 @@ TEST(MATRIX_KBD, KeyLastPressedGet)
     {
         TEST_ASSERT_NULL(keys [i]);
     }
+
+    const MatrixKbdOsal_s* savedOsal = s_kbd.osal;
+    s_kbd.osal = NULL;
+    status = MatrixKbdKeyLastPressedGet(&s_kbd, keys, 1);
+    TEST_ASSERT_EQUAL(MATRIX_KBD_NOT_INIT_ERR, status);
+    s_kbd.osal = savedOsal;
 }
 
 /*=============================[ TEST GROUP RUNNER ]========================*/
@@ -458,6 +644,10 @@ TEST(MATRIX_KBD, KeyLastPressedGet)
 TEST_GROUP_RUNNER(MATRIX_KBD)
 {
     RUN_TEST_CASE(MATRIX_KBD, Init_NullArgs);
+    RUN_TEST_CASE(MATRIX_KBD, Init_RowsZero);
+    RUN_TEST_CASE(MATRIX_KBD, Init_ColsZero);
+    RUN_TEST_CASE(MATRIX_KBD, Init_ColsOverflow);
+    RUN_TEST_CASE(MATRIX_KBD, Deinit_NullArgs);
     RUN_TEST_CASE(MATRIX_KBD, ParentGet);
     RUN_TEST_CASE(MATRIX_KBD, ParentSet);
     RUN_TEST_CASE(MATRIX_KBD, NameGet);
@@ -470,8 +660,11 @@ TEST_GROUP_RUNNER(MATRIX_KBD)
     RUN_TEST_CASE(MATRIX_KBD, KeyIdGet);
     RUN_TEST_CASE(MATRIX_KBD, KeyIdSet);
     RUN_TEST_CASE(MATRIX_KBD, KeyCbAttach);
+    RUN_TEST_CASE(MATRIX_KBD, KeyCbAttach_NotInit);
     RUN_TEST_CASE(MATRIX_KBD, KeyCbDetach);
+    RUN_TEST_CASE(MATRIX_KBD, KeyCbDetach_NotInit);
     RUN_TEST_CASE(MATRIX_KBD, AllKeyCbAttach);
+    RUN_TEST_CASE(MATRIX_KBD, AllKeyCbAttach_NotInit);
     RUN_TEST_CASE(MATRIX_KBD, AllKeyCbDetach);
     RUN_TEST_CASE(MATRIX_KBD, KeyStateGet);
     RUN_TEST_CASE(MATRIX_KBD, KeysStateGet);
