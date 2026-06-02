@@ -51,16 +51,15 @@ jobs:
             ./build-m4f/main/libMatrixKbdHal.a
             ./build-m4f/main/libMatrixKbdOsal.a
 
-  Analyze:
-    name: Analyze
+  CppCheck:
+    name: CppCheck
     needs: Build-Test
     runs-on: ubuntu-latest
     container:
       image: vladkosten/embedded_env:latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: CppCheck
+      - name: Run CppCheck
         run: |
           cppcheck --enable=warning,performance,portability \
                    --inconclusive \
@@ -73,7 +72,15 @@ jobs:
                    --inline-suppr \
                    main/ portable/
 
-      - name: MISRA
+  Misra:
+    name: MISRA
+    needs: Build-Test
+    runs-on: ubuntu-latest
+    container:
+      image: vladkosten/embedded_env:latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run MISRA
         run: |
           cppcheck --enable=style \
                    --inconclusive \
@@ -88,7 +95,15 @@ jobs:
                    main/ portable/
           cat misra.txt
 
-      - name: Clang Format
+  ClangFormat:
+    name: Clang Format
+    needs: Build-Test
+    runs-on: ubuntu-latest
+    container:
+      image: vladkosten/embedded_env:latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run clang-format
         run: |
           find main/ portable/ -name '*.c' -o -name '*.h' | \
             xargs clang-format --dry-run --Werror
@@ -106,12 +121,14 @@ jobs:
       - name: Run tests
         run: |
           chmod +x ./MatrixKbdUnitTestRun
-          ./MatrixKbdUnitTestRun
+          ./MatrixKbdUnitTestRun -v
 
   Deploy:
     name: Create Release
     needs:
-      - Analyze
+      - CppCheck
+      - Misra
+      - ClangFormat
       - Test
       - Build-M4F
     runs-on: ubuntu-latest

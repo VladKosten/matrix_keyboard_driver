@@ -27,16 +27,15 @@ jobs:
           name: test-binary
           path: ./build/test/test_runner/MatrixKbdUnitTestRun
 
-  Analyze:
-    name: Analyze
+  CppCheck:
+    name: CppCheck
     needs: Build
     runs-on: ubuntu-latest
     container:
       image: vladkosten/embedded_env:latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: CppCheck
+      - name: Run CppCheck
         run: |
           cppcheck --enable=warning,performance,portability \
                    --inconclusive \
@@ -49,7 +48,15 @@ jobs:
                    --inline-suppr \
                    main/ portable/
 
-      - name: MISRA
+  Misra:
+    name: MISRA
+    needs: Build
+    runs-on: ubuntu-latest
+    container:
+      image: vladkosten/embedded_env:latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run MISRA
         run: |
           cppcheck --enable=style \
                    --inconclusive \
@@ -64,7 +71,15 @@ jobs:
                    main/ portable/
           cat misra.txt
 
-      - name: Clang Format
+  ClangFormat:
+    name: Clang Format
+    needs: Build
+    runs-on: ubuntu-latest
+    container:
+      image: vladkosten/embedded_env:latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run clang-format
         run: |
           find main/ portable/ -name '*.c' -o -name '*.h' | \
             xargs clang-format --dry-run --Werror
@@ -82,21 +97,24 @@ jobs:
       - name: Run tests
         run: |
           chmod +x ./MatrixKbdUnitTestRun
-          ./MatrixKbdUnitTestRun
+          ./MatrixKbdUnitTestRun -v
 
   Metrics:
-    name: Metrics (CCCC)
+    name: Metrics
     needs: Build
     runs-on: ubuntu-latest
     container:
       image: vladkosten/embedded_env:latest
     steps:
       - uses: actions/checkout@v4
-      - name: Run CCCC
+      - name: Run Lizard
         run: |
+          pip install lizard
           mkdir -p metrics
-          cccc --outdir=metrics $(find main/ portable/ -name '*.c' -o -name '*.h') || true
-          ls -la metrics/ || echo "No metrics produced"
+          lizard main/ portable/ --format json --output metrics/lizard.json
+          lizard main/ portable/ --csv > metrics/lizard.csv
+          echo "=== Summary ==="
+          lizard main/ portable/ --warnings 0.5 20 4 15 5
       - name: Upload metrics
         uses: actions/upload-artifact@v4
         with:
