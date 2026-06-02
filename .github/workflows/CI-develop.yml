@@ -129,7 +129,7 @@ jobs:
           lizard main/ portable/ --xml > metrics/lizard.xml
           lizard main/ portable/ --csv > metrics/lizard.csv
           echo "=== Summary ==="
-          lizard main/ portable/ --warnings 0.5 20 4 15 5
+          lizard main/ portable/ -C 15 -L 100 -a 5
       - name: Upload metrics
         uses: actions/upload-artifact@v4
         with:
