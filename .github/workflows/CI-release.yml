@@ -82,7 +82,7 @@ jobs:
 
   Misra:
     name: MISRA
-    needs: Build-Test
+    needs: CppCheck
     runs-on: ubuntu-latest
     container:
       image: vladkosten/embedded_env:latest
@@ -111,7 +111,7 @@ jobs:
 
   ClangFormat:
     name: Clang Format
-    needs: Build-Test
+    needs: Misra
     runs-on: ubuntu-latest
     container:
       image: vladkosten/embedded_env:latest
@@ -125,7 +125,7 @@ jobs:
 
   Test:
     name: Unit Test
-    needs: Build-Test
+    needs: ClangFormat
     runs-on: ubuntu-latest
     steps:
       - name: Download test binary

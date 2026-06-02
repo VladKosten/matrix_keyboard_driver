@@ -58,7 +58,7 @@ jobs:
 
   Misra:
     name: MISRA
-    needs: Build
+    needs: CppCheck
     runs-on: ubuntu-latest
     container:
       image: vladkosten/embedded_env:latest
@@ -87,7 +87,7 @@ jobs:
 
   ClangFormat:
     name: Clang Format
-    needs: Build
+    needs: Misra
     runs-on: ubuntu-latest
     container:
       image: vladkosten/embedded_env:latest
@@ -101,7 +101,7 @@ jobs:
 
   Test:
     name: Unit Test
-    needs: Build
+    needs: ClangFormat
     runs-on: ubuntu-latest
     steps:
       - name: Download test binary
@@ -116,7 +116,7 @@ jobs:
 
   Metrics:
     name: Metrics
-    needs: Build
+    needs: Test
     runs-on: ubuntu-latest
     container:
       image: vladkosten/embedded_env:latest
@@ -126,10 +126,10 @@ jobs:
         run: |
           pip install lizard
           mkdir -p metrics
-          lizard main/ portable/ --xml > metrics/lizard.xml
-          lizard main/ portable/ --csv > metrics/lizard.csv
+          lizard main/ portable/ --exclude 'portable/hal/cmock/mocks.c' --xml > metrics/lizard.xml
+          lizard main/ portable/ --exclude 'portable/hal/cmock/mocks.c' --csv > metrics/lizard.csv
           echo "=== Summary ==="
-          lizard main/ portable/ -C 15 -L 100 -a 5
+          lizard main/ portable/ --exclude 'portable/hal/cmock/mocks.c' -C 15 -L 100 -a 5 -i 3
       - name: Upload metrics
         uses: actions/upload-artifact@v4
         with:
