@@ -38,11 +38,12 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Configure
-        run: cmake -B build-m4f \
-          -DCMAKE_TOOLCHAIN_FILE=cmake/toolchain-arm-m4f.cmake \
-          -DMATRIX_KBD_BUILD_FOR_PROJECT=ON \
-          -DMATRIX_KBD_BUILD_CORE_ONLY=ON \
-          -DMATRIX_KBD_BUILD_TESTS=OFF
+        run: |
+          cmake -B build-m4f \
+            -DCMAKE_TOOLCHAIN_FILE=cmake/toolchain-arm-m4f.cmake \
+            -DMATRIX_KBD_BUILD_FOR_PROJECT=ON \
+            -DMATRIX_KBD_BUILD_CORE_ONLY=ON \
+            -DMATRIX_KBD_BUILD_TESTS=OFF
       - name: Build
         run: cmake --build build-m4f
       - name: Upload M4F libraries
