@@ -1,11 +1,11 @@
 /**
-* \file      matrix_kbd.c
-* \brief     Matrix Kbd driver main module
-* \authors   Vladislav Kosten (vladkosten@gmail.com)
-* \copyright Copyright (c) 
-* \warning   A warning may be placed here...
-* \bug       Bug report may be placed here...
-*/
+ * \file      matrix_kbd.c
+ * \brief     Matrix Kbd driver main module
+ * \authors   Vladislav Kosten (vladkosten@gmail.com)
+ * \copyright Copyright (c)
+ * \warning   A warning may be placed here...
+ * \bug       Bug report may be placed here...
+ */
 //===============================================================================[ INCLUDE ]========================================================================================
 
 #include "matrix_kbd.h"
@@ -15,18 +15,16 @@
 #include <stddef.h>
 #include <string.h>
 
-
 //=====================================================================[ INTERNAL MACRO DEFINITIONS ]===============================================================================
 
 /**
-* \brief MATRIX_KBD_ASSERT macro definition
-*/
+ * \brief MATRIX_KBD_ASSERT macro definition
+ */
 #ifndef MATRIX_KBD_ASSERT
     #define MATRIX_KBD_ASSERT(cond)
 #endif
 
 //====================================================================[ INTERNAL DATA TYPES DEFINITIONS ]===========================================================================
-
 
 //===============================================================[ INTERNAL FUNCTIONS AND OBJECTS DECLARATION ]=====================================================================
 
@@ -39,47 +37,47 @@
 static void matrixKbdWorker(const void* const kbdInstance);
 
 /**
-* \brief This function locks the keyboard
-* \param[in] kbd - the matrix keyboard descriptor;
+ * \brief This function locks the keyboard
+ * \param[in] kbd - the matrix keyboard descriptor;
  */
 static inline void matrixKbdLock(const MatrixKbd_s* const kbd);
 
 /**
-* \brief This function unlocks the keyboard
-* \param[in] kbd - the matrix keyboard descriptor;
+ * \brief This function unlocks the keyboard
+ * \param[in] kbd - the matrix keyboard descriptor;
  */
 static inline void matrixKbdUnlock(const MatrixKbd_s* const kbd);
 
 /**
-* \brief This function adds a key to the log of pressed keys
-* \param[in] kbd - the matrix keyboard descriptor;
-* \param[in] key - the key descriptor;
-* \param[out] no;
+ * \brief This function adds a key to the log of pressed keys
+ * \param[in] kbd - the matrix keyboard descriptor;
+ * \param[in] key - the key descriptor;
+ * \param[out] no;
  */
 static inline void matrixKbdKeyLogAdd(MatrixKbdKeyLog_s* const keyLog, const MatrixKbdKey_s* const key);
 
 /**
-* \brief This function flushes the log of pressed keys (clears the log)
-* \param[in] kbd - the matrix keyboard descriptor;
+ * \brief This function flushes the log of pressed keys (clears the log)
+ * \param[in] kbd - the matrix keyboard descriptor;
  */
 static inline void matrixKbdLastPressedFlush(MatrixKbdKeyLog_s* const keyLog);
 
 /**
-* \brief This function reads the state of the matrix keyboard
-* \note This function is called from the worker thread and is not intended for direct use.
-*       For poll need buffer for store state of key and after poll need update state of key
-* \param[in] kbd - the matrix keyboard descriptor;
-* \param[in] state - the state of the matrix keyboard;
-* \param[out] no;
+ * \brief This function reads the state of the matrix keyboard
+ * \note This function is called from the worker thread and is not intended for direct use.
+ *       For poll need buffer for store state of key and after poll need update state of key
+ * \param[in] kbd - the matrix keyboard descriptor;
+ * \param[in] state - the state of the matrix keyboard;
+ * \param[out] no;
  */
 static inline void matrixKbdStatesPoll(MatrixKbd_s* const kbd, MatrixKbdState_s* const state);
 
 /**
-* \brief This function updates the state of the matrix keyboard
-* \note This function is called from the worker thread and is not intended for direct use.
-* \param[in] kbd - the matrix keyboard descriptor;
-* \param[in] state - the state of the matrix keyboard (buffer, after poll);
-* \param[out] no;
+ * \brief This function updates the state of the matrix keyboard
+ * \note This function is called from the worker thread and is not intended for direct use.
+ * \param[in] kbd - the matrix keyboard descriptor;
+ * \param[in] state - the state of the matrix keyboard (buffer, after poll);
+ * \param[out] no;
  */
 static inline void matrixKbdStatesUpdate(MatrixKbd_s* const kbd, const MatrixKbdState_s* const state);
 
@@ -105,15 +103,15 @@ MatrixKbdErr_e MatrixKbdInit(MatrixKbd_s* const kbd,
                              const char* const name)
 {
     /* Checking of params */
-    if((NULL == kbd)                            ||
-       (NULL == hal)                            ||
-       (NULL == osal)                           ||
-       (0 == rowsCount)                         ||
-       (0 == columnsCount)                      ||
-       (rowsCount > MATRIX_KBD_ROWS_COUNT_MAX)  ||
-       (columnsCount > MATRIX_KBD_COLUMNS_COUNT_MAX))
+    if ((NULL == kbd) ||
+        (NULL == hal) ||
+        (NULL == osal) ||
+        (0 == rowsCount) ||
+        (0 == columnsCount) ||
+        (rowsCount > MATRIX_KBD_ROWS_COUNT_MAX) ||
+        (columnsCount > MATRIX_KBD_COLUMNS_COUNT_MAX))
     {
-        return MATRIX_KBD_INVALID_ARGS_ERR;     // Exit: Error: Invalid args
+        return MATRIX_KBD_INVALID_ARGS_ERR;    // Exit: Error: Invalid args
     }
 
     /* Set matrix dimensions */
@@ -128,57 +126,57 @@ MatrixKbdErr_e MatrixKbdInit(MatrixKbd_s* const kbd,
     kbd->osal = osal;
 
     /* Set parent pointer of the kbd object */
-    kbd->parent = (void*)parent;
+    kbd->parent = (void*) parent;
 
     /* Set the name of the matrix keyboard */
-    kbd->name = (char*)name;
+    kbd->name = (char*) name;
 
     /* Deploying RT environment */
     MatrixKbdErr_e status = MATRIX_KBD_NO_ERR;
-    (void)status;
-    MatrixKbdOsalErr_e osalStatus = MatrixKbdOsalThreadWorkerAttach(osal,matrixKbdWorker);
-    if(osalStatus != MATRIX_KBD_OSAL_NO_ERR)
+    (void) status;
+    MatrixKbdOsalErr_e osalStatus = MatrixKbdOsalThreadWorkerAttach(osal, matrixKbdWorker);
+    if (osalStatus != MATRIX_KBD_OSAL_NO_ERR)
     {
         status = MatrixKbdDeinit(kbd);
         MATRIX_KBD_ASSERT(status == MATRIX_KBD_NO_ERR);
-        return MATRIX_KBD_INIT_ERR;             // Exit: Error: Init error
+        return MATRIX_KBD_INIT_ERR;    // Exit: Error: Init error
     }
 
     /* Set parent pointer for osal and hal layers */
-    MatrixKbdHalErr_e halStatus = MatrixKbdHalParentSet((MatrixKbdHal_s*)kbd->hal, (void*)kbd);
-    if(halStatus != MATRIX_KBD_HAL_NO_ERR)
+    MatrixKbdHalErr_e halStatus = MatrixKbdHalParentSet((MatrixKbdHal_s*) kbd->hal, (void*) kbd);
+    if (halStatus != MATRIX_KBD_HAL_NO_ERR)
     {
         status = MatrixKbdDeinit(kbd);
         MATRIX_KBD_ASSERT(status == MATRIX_KBD_NO_ERR);
-        return MATRIX_KBD_INIT_ERR;             // Exit: Error: Init error
+        return MATRIX_KBD_INIT_ERR;    // Exit: Error: Init error
     }
-    osalStatus = MatrixKbdOsalParentSet((MatrixKbdOsal_s*)kbd->osal, (void*)kbd);
-    if(osalStatus != MATRIX_KBD_OSAL_NO_ERR)
+    osalStatus = MatrixKbdOsalParentSet((MatrixKbdOsal_s*) kbd->osal, (void*) kbd);
+    if (osalStatus != MATRIX_KBD_OSAL_NO_ERR)
     {
         status = MatrixKbdDeinit(kbd);
         MATRIX_KBD_ASSERT(status == MATRIX_KBD_NO_ERR);
-        return MATRIX_KBD_INIT_ERR;             // Exit: Error: Init error
+        return MATRIX_KBD_INIT_ERR;    // Exit: Error: Init error
     }
 
     /* Clear states and update info on keys */
-    for(MatrixKbdRow_t row = 0; row < rowsCount; row++)
+    for (MatrixKbdRow_t row = 0; row < rowsCount; row++)
     {
-        for(MatrixKbdColumn_t column = 0; column < columnsCount; column++)
+        for (MatrixKbdColumn_t column = 0; column < columnsCount; column++)
         {
-            kbd->state.key[row][column] = false;
-            kbd->keys[row][column].id = column + row * columnsCount;
-            kbd->keys[row][column].parent = (void*)kbd;
-            kbd->keys[row][column].matrixKbdKeyPressedCb = NULL;
-            kbd->keys[row][column].matrixKbdKeyPressingCb = NULL;
-            kbd->keys[row][column].matrixKbdKeyReleasedCb = NULL;
-            kbd->keys[row][column].matrixKbdKeyUnpressedCb = NULL;
+            kbd->state.key [row][column] = false;
+            kbd->keys [row][column].id = column + row * columnsCount;
+            kbd->keys [row][column].parent = (void*) kbd;
+            kbd->keys [row][column].matrixKbdKeyPressedCb = NULL;
+            kbd->keys [row][column].matrixKbdKeyPressingCb = NULL;
+            kbd->keys [row][column].matrixKbdKeyReleasedCb = NULL;
+            kbd->keys [row][column].matrixKbdKeyUnpressedCb = NULL;
         }
     }
 
     /* Clear the log of pressed keys */
     matrixKbdLastPressedFlush(&kbd->keyLog);
 
-    return MATRIX_KBD_NO_ERR;                   // Exit: no errors
+    return MATRIX_KBD_NO_ERR;    // Exit: no errors
 }
 
 /**
@@ -190,71 +188,71 @@ MatrixKbdErr_e MatrixKbdInit(MatrixKbd_s* const kbd,
 MatrixKbdErr_e MatrixKbdDeinit(MatrixKbd_s* const kbd)
 {
     /* Checking of params */
-    if(NULL == kbd)
+    if (NULL == kbd)
     {
-        return MATRIX_KBD_INVALID_ARGS_ERR;     // Exit: Error: Invalid args
+        return MATRIX_KBD_INVALID_ARGS_ERR;    // Exit: Error: Invalid args
     }
 
     /* Destroy the entire object */
     memset(kbd, 0, sizeof(MatrixKbd_s));
 
-    return MATRIX_KBD_NO_ERR;                   // Exit: no errors
+    return MATRIX_KBD_NO_ERR;    // Exit: no errors
 }
 
 /**
-* \brief Start polling the status of the keys
-* \param[in] const MatrixKbd_s* const kbd - the matrix keyboard descriptor;
-* \param[out] no;
-* \return MatrixKbdErr_e  - error code. non-zero = an error has occurred;
+ * \brief Start polling the status of the keys
+ * \param[in] const MatrixKbd_s* const kbd - the matrix keyboard descriptor;
+ * \param[out] no;
+ * \return MatrixKbdErr_e  - error code. non-zero = an error has occurred;
  */
 MatrixKbdErr_e MatrixKbdScanStart(const MatrixKbd_s* const kbd)
 {
     /* Checking of params */
-    if(NULL == kbd)
+    if (NULL == kbd)
     {
-        return MATRIX_KBD_INVALID_ARGS_ERR;     // Exit: Error: Invalid args
+        return MATRIX_KBD_INVALID_ARGS_ERR;    // Exit: Error: Invalid args
     }
 
-    if(NULL == kbd->osal)
+    if (NULL == kbd->osal)
     {
-        return MATRIX_KBD_NOT_INIT_ERR;         // Exit: Error: Not init
+        return MATRIX_KBD_NOT_INIT_ERR;    // Exit: Error: Not init
     }
 
     MatrixKbdOsalErr_e osalStatus = MatrixKbdOsalThreadResume(kbd->osal);
-    if(osalStatus != MATRIX_KBD_OSAL_NO_ERR)
+    if (osalStatus != MATRIX_KBD_OSAL_NO_ERR)
     {
-        return MATRIX_KBD_PORT_ERR;             // Exit: port error
+        return MATRIX_KBD_PORT_ERR;    // Exit: port error
     }
 
-    return MATRIX_KBD_NO_ERR;                   // Exit: no errors
+    return MATRIX_KBD_NO_ERR;    // Exit: no errors
 }
 
 /**
-* \brief Stop polling the status of the keys
-* \param[in] const MatrixKbd_s* const kbd - the matrix keyboard descriptor;
-* \param[out] no;
-* \return MatrixKbdErr_e  - error code. non-zero = an error has occurred;
+ * \brief Stop polling the status of the keys
+ * \param[in] const MatrixKbd_s* const kbd - the matrix keyboard descriptor;
+ * \param[out] no;
+ * \return MatrixKbdErr_e  - error code. non-zero = an error has occurred;
  */
 MatrixKbdErr_e MatrixKbdScanSuspend(const MatrixKbd_s* const kbd)
 {
     /* Checking of params */
-    if(NULL == kbd)
+    if (NULL == kbd)
     {
-        return MATRIX_KBD_INVALID_ARGS_ERR;     // Exit: Error: Invalid args
+        return MATRIX_KBD_INVALID_ARGS_ERR;    // Exit: Error: Invalid args
     }
 
-    if(kbd->osal == NULL)
+    if (kbd->osal == NULL)
     {
         return MATRIX_KBD_NOT_INIT_ERR;
     }
 
     MatrixKbdOsalErr_e osalStatus = MatrixKbdOsalThreadSuspend(kbd->osal);
-    if(osalStatus != MATRIX_KBD_OSAL_NO_ERR)
+    if (osalStatus != MATRIX_KBD_OSAL_NO_ERR)
     {
-        return MATRIX_KBD_PORT_ERR;             // Exit: port error
+        return MATRIX_KBD_PORT_ERR;    // Exit: port error
     }
 
-    return MATRIX_KBD_NO_ERR;                   // Exit: no errors
+    return MATRIX_KBD_NO_ERR;    // Exit: no errors
 }
 
 /**
@@ -266,16 +264,16 @@ MatrixKbdErr_e MatrixKbdScanSuspend(const MatrixKbd_s* const kbd)
 MatrixKbdErr_e MatrixKbdParentGet(const MatrixKbd_s* const kbd, void** const parent)
 {
     /* Checking of params */
-    if((NULL == kbd) ||
-       (NULL == parent))
+    if ((NULL == kbd) ||
+        (NULL == parent))
     {
-        return MATRIX_KBD_INVALID_ARGS_ERR;     // Exit: Error: Invalid args
+        return MATRIX_KBD_INVALID_ARGS_ERR;    // Exit: Error: Invalid args
     }
 
     /* Output the parent value */
-    *parent = (void*)kbd->parent;
+    *parent = (void*) kbd->parent;
 
-    return MATRIX_KBD_NO_ERR;                   // Exit: no errors
+    return MATRIX_KBD_NO_ERR;    // Exit: no errors
 }
 
 /**
@@ -288,16 +286,16 @@ MatrixKbdErr_e MatrixKbdParentGet(const MatrixKbd_s* const kbd, void** const par
 MatrixKbdErr_e MatrixKbdParentSet(MatrixKbd_s* const kbd, const void* const parent)
 {
     /* Checking of params */
-    if((NULL == kbd) ||
-       (NULL == parent))
+    if ((NULL == kbd) ||
+        (NULL == parent))
     {
-        return MATRIX_KBD_INVALID_ARGS_ERR;     // Exit: Error: Invalid args
+        return MATRIX_KBD_INVALID_ARGS_ERR;    // Exit: Error: Invalid args
     }
 
     /* Set the parent */
-    kbd->parent = (void*)parent;
+    kbd->parent = (void*) parent;
 
-    return MATRIX_KBD_NO_ERR;                   // Exit: no errors
+    return MATRIX_KBD_NO_ERR;    // Exit: no errors
 }
 
 /**
@@ -310,16 +308,16 @@ MatrixKbdErr_e MatrixKbdParentSet(MatrixKbd_s* const kbd, const void* const pare
 MatrixKbdErr_e MatrixKbdNameSet(MatrixKbd_s* const kbd, const char* const name)
 {
     /* Checking of params */
-    if((NULL == kbd) ||
-       (NULL == name))
+    if ((NULL == kbd) ||
+        (NULL == name))
     {
-        return MATRIX_KBD_INVALID_ARGS_ERR;     // Exit: Error: Invalid args
+        return MATRIX_KBD_INVALID_ARGS_ERR;    // Exit: Error: Invalid args
     }
 
     /* Set the name */
-    kbd->name = (char*)name;
+    kbd->name = (char*) name;
 
-    return MATRIX_KBD_NO_ERR;                   // Exit: no errors
+    return MATRIX_KBD_NO_ERR;    // Exit: no errors
 }
 
 /**
@@ -331,105 +329,103 @@ MatrixKbdErr_e MatrixKbdNameSet(MatrixKbd_s* const kbd, const char* const name)
 MatrixKbdErr_e MatrixKbdNameGet(const MatrixKbd_s* const kbd, char** const name)
 {
     /* Checking of params */
-    if((NULL == kbd) ||
-       (NULL == name))
+    if ((NULL == kbd) ||
+        (NULL == name))
     {
-        return MATRIX_KBD_INVALID_ARGS_ERR;     // Exit: Error: Invalid args
+        return MATRIX_KBD_INVALID_ARGS_ERR;    // Exit: Error: Invalid args
     }
 
     /* Get the name */
-    *name = (char*)kbd->name;
+    *name = (char*) kbd->name;
 
-    return MATRIX_KBD_NO_ERR;                   // Exit: no errors
-
+    return MATRIX_KBD_NO_ERR;    // Exit: no errors
 }
 
 /**
-* \brief Get the id of key in kbd
-* \param[in] kbd - the matrix keyboard descriptor;
-* \param[in] key - the key descriptor;
-* \param[out] id - buffer for the key identifier;
-* \return MatrixKbdErr_e - error code. non-zero = an error has occurred;
+ * \brief Get the id of key in kbd
+ * \param[in] kbd - the matrix keyboard descriptor;
+ * \param[in] key - the key descriptor;
+ * \param[out] id - buffer for the key identifier;
+ * \return MatrixKbdErr_e - error code. non-zero = an error has occurred;
  */
-MatrixKbdErr_e MatrixKbdKeyIdGet(const MatrixKbd_s* const kbd, const MatrixKbdKey_s* const key, uint8_t* const  id)
+MatrixKbdErr_e MatrixKbdKeyIdGet(const MatrixKbd_s* const kbd, const MatrixKbdKey_s* const key, uint8_t* const id)
 {
     /* Checking of params */
-    if((NULL == kbd) ||
-       (NULL == key) ||
-       (NULL == id))
+    if ((NULL == kbd) ||
+        (NULL == key) ||
+        (NULL == id))
     {
-        return MATRIX_KBD_INVALID_ARGS_ERR; // Exit: Error: Invalid args
+        return MATRIX_KBD_INVALID_ARGS_ERR;    // Exit: Error: Invalid args
     }
     /* Check is kbd key */
-    if(kbd != (MatrixKbd_s* )key->parent)
+    if (kbd != (MatrixKbd_s*) key->parent)
     {
-        return MATRIX_KBD_INVALID_ARGS_ERR; // Exit: Error: Invalid args
+        return MATRIX_KBD_INVALID_ARGS_ERR;    // Exit: Error: Invalid args
     }
 
     *id = key->id;
 
-    return MATRIX_KBD_NO_ERR;               // Exit: no errors
+    return MATRIX_KBD_NO_ERR;    // Exit: no errors
 }
 
 /**
-* \brief Get the key by its identifier
-* \param[in] kbd -  the matrix keyboard descriptor to get the key;
-* \param[in] id - the key identifier;
-* \param[out] key - buffer for the key descriptor;
-* \return MatrixKbdErr_e - error code. non-zero = an error has occurred;
+ * \brief Get the key by its identifier
+ * \param[in] kbd -  the matrix keyboard descriptor to get the key;
+ * \param[in] id - the key identifier;
+ * \param[out] key - buffer for the key descriptor;
+ * \return MatrixKbdErr_e - error code. non-zero = an error has occurred;
  */
 MatrixKbdErr_e MatrixKbdKeyGetById(const MatrixKbd_s* const kbd, const MatrixKbdKeyId_t id, MatrixKbdKey_s** const key)
 {
     /* Checking of params */
-    if((NULL == kbd) ||
-       (NULL == key))
+    if ((NULL == kbd) ||
+        (NULL == key))
     {
-        return MATRIX_KBD_INVALID_ARGS_ERR; // Exit: Error: Invalid args
+        return MATRIX_KBD_INVALID_ARGS_ERR;    // Exit: Error: Invalid args
     }
 
     /* Search the key by its identifier */
-    for(MatrixKbdRow_t row = 0; row < kbd->rowsCount; row++)
+    for (MatrixKbdRow_t row = 0; row < kbd->rowsCount; row++)
     {
-        for(MatrixKbdColumn_t column = 0; column < kbd->columnsCount; column++)
+        for (MatrixKbdColumn_t column = 0; column < kbd->columnsCount; column++)
         {
-            if(kbd->keys[row][column].id == id)
+            if (kbd->keys [row][column].id == id)
             {
-                *key = (MatrixKbdKey_s*)&kbd->keys[row][column];
-                return MATRIX_KBD_NO_ERR;       // Exit: no errors
+                *key = (MatrixKbdKey_s*) &kbd->keys [row][column];
+                return MATRIX_KBD_NO_ERR;    // Exit: no errors
             }
         }
     }
 
-    return MATRIX_KBD_INVALID_ARGS_ERR;           // Exit: Error: Not found
+    return MATRIX_KBD_INVALID_ARGS_ERR;    // Exit: Error: Not found
 }
 
 /**
-* \brief Set the id of the key in the keyboard
-* \note By default, the key identifier is equal to the number of the key in the keyboard
-* \param[in] kbd - the matrix keyboard descriptor;
-* \param[in] key - the key descriptor;
-* \param[in] id - the key identifier;
-* \param[out] no;
-* \return MatrixKbdErr_e - error code. non-zero = an error has occurred;
+ * \brief Set the id of the key in the keyboard
+ * \note By default, the key identifier is equal to the number of the key in the keyboard
+ * \param[in] kbd - the matrix keyboard descriptor;
+ * \param[in] key - the key descriptor;
+ * \param[in] id - the key identifier;
+ * \param[out] no;
+ * \return MatrixKbdErr_e - error code. non-zero = an error has occurred;
  */
 MatrixKbdErr_e MatrixKbdKeyIdSet(const MatrixKbd_s* const kbd, MatrixKbdKey_s* const key, const uint8_t id)
 {
     /* Checking of params */
-    if((NULL == kbd) ||
-       (NULL == key))
+    if ((NULL == kbd) ||
+        (NULL == key))
     {
-        return MATRIX_KBD_INVALID_ARGS_ERR; // Exit: Error: Invalid args
+        return MATRIX_KBD_INVALID_ARGS_ERR;    // Exit: Error: Invalid args
     }
     /* Check is kbd key */
-    if(kbd != (MatrixKbd_s* )key->parent)
+    if (kbd != (MatrixKbd_s*) key->parent)
     {
-        return MATRIX_KBD_INVALID_ARGS_ERR; // Exit: Error: Invalid args
+        return MATRIX_KBD_INVALID_ARGS_ERR;    // Exit: Error: Invalid args
     }
 
     key->id = id;
 
-    return MATRIX_KBD_NO_ERR;               // Exit: no errors
-
+    return MATRIX_KBD_NO_ERR;    // Exit: no errors
 }
 
 /**
@@ -441,16 +437,16 @@ MatrixKbdErr_e MatrixKbdKeyIdSet(const MatrixKbd_s* const kbd, MatrixKbdKey_s* c
 MatrixKbdErr_e MatrixKbdKeysStateGet(const MatrixKbd_s* const kbd, MatrixKbdState_s* const kbdState)
 {
     /* Checking of params */
-    if((NULL == kbd) ||
-       (NULL == kbdState))
+    if ((NULL == kbd) ||
+        (NULL == kbdState))
     {
-        return MATRIX_KBD_INVALID_ARGS_ERR; // Exit: Error: Invalid args
+        return MATRIX_KBD_INVALID_ARGS_ERR;    // Exit: Error: Invalid args
     }
 
     /* Checking is init obj */
-    if(NULL == kbd->osal)
+    if (NULL == kbd->osal)
     {
-        return MATRIX_KBD_NOT_INIT_ERR;         // Exit: Error: Init error
+        return MATRIX_KBD_NOT_INIT_ERR;    // Exit: Error: Init error
     }
 
     /* Lock the keyboard */
@@ -462,30 +458,30 @@ MatrixKbdErr_e MatrixKbdKeysStateGet(const MatrixKbd_s* const kbd, MatrixKbdStat
     /* Unlock the keyboard */
     matrixKbdUnlock(kbd);
 
-    return MATRIX_KBD_NO_ERR;               // Exit: no errors
+    return MATRIX_KBD_NO_ERR;    // Exit: no errors
 }
 
 /**
-* \brief        Get the state of the key
-* \param[in]    const MatrixKbd_s* const kbd - the matrix keyboard descriptor;
-* \param[in]    const MatrixKbdKey_s* const key - the key descriptor;
-* \param[in]    MatrixKbdKeyState_t* const keyState - the state of the key;
-* \return MatrixKbdErr_e - error code. non-zero = an error has occurred;
+ * \brief        Get the state of the key
+ * \param[in]    const MatrixKbd_s* const kbd - the matrix keyboard descriptor;
+ * \param[in]    const MatrixKbdKey_s* const key - the key descriptor;
+ * \param[in]    MatrixKbdKeyState_t* const keyState - the state of the key;
+ * \return MatrixKbdErr_e - error code. non-zero = an error has occurred;
  */
 MatrixKbdErr_e MatrixKbdKeyStateGet(const MatrixKbd_s* const kbd, const MatrixKbdKey_s* const key, MatrixKbdKeyState_t* const keyState)
 {
     /* Checking of params */
-    if((NULL == kbd) ||
-       (NULL == key) ||
-       (NULL == keyState))
+    if ((NULL == kbd) ||
+        (NULL == key) ||
+        (NULL == keyState))
     {
-        return MATRIX_KBD_INVALID_ARGS_ERR; // Exit: Error: Invalid args
+        return MATRIX_KBD_INVALID_ARGS_ERR;    // Exit: Error: Invalid args
     }
 
     /* Check is kbd key */
-    if(kbd != (MatrixKbd_s* )key->parent)
+    if (kbd != (MatrixKbd_s*) key->parent)
     {
-        return MATRIX_KBD_INVALID_ARGS_ERR; // Exit: Error: Invalid args
+        return MATRIX_KBD_INVALID_ARGS_ERR;    // Exit: Error: Invalid args
     }
 
     /* Lock the keyboard */
@@ -497,7 +493,7 @@ MatrixKbdErr_e MatrixKbdKeyStateGet(const MatrixKbd_s* const kbd, const MatrixKb
     /* Unlock the keyboard */
     matrixKbdUnlock(kbd);
 
-    return MATRIX_KBD_NO_ERR;               // Exit: no errors
+    return MATRIX_KBD_NO_ERR;    // Exit: no errors
 }
 
 /**
@@ -509,15 +505,15 @@ MatrixKbdErr_e MatrixKbdKeyStateGet(const MatrixKbd_s* const kbd, const MatrixKb
 MatrixKbdErr_e MatrixKbdRowsCountGet(const MatrixKbd_s* const kbd, MatrixKbdRow_t* const rowsCount)
 {
     /* Checking of params */
-    if((NULL == kbd)    ||
-       (NULL == rowsCount))
+    if ((NULL == kbd) ||
+        (NULL == rowsCount))
     {
-        return MATRIX_KBD_INVALID_ARGS_ERR; // Exit: Error: Invalid args
+        return MATRIX_KBD_INVALID_ARGS_ERR;    // Exit: Error: Invalid args
     }
 
     *rowsCount = kbd->rowsCount;
 
-    return MATRIX_KBD_NO_ERR;               // Exit: no errors
+    return MATRIX_KBD_NO_ERR;    // Exit: no errors
 }
 
 /**
@@ -529,82 +525,82 @@ MatrixKbdErr_e MatrixKbdRowsCountGet(const MatrixKbd_s* const kbd, MatrixKbdRow_
 MatrixKbdErr_e MatrixKbdColumnsCountGet(const MatrixKbd_s* const kbd, MatrixKbdColumn_t* const columnCount)
 {
     /* Checking of params */
-    if((NULL == kbd) ||
-       (NULL == columnCount))
+    if ((NULL == kbd) ||
+        (NULL == columnCount))
     {
-        return MATRIX_KBD_INVALID_ARGS_ERR; // Exit: Error: Invalid args
+        return MATRIX_KBD_INVALID_ARGS_ERR;    // Exit: Error: Invalid args
     }
 
     *columnCount = kbd->columnsCount;
 
-    return MATRIX_KBD_NO_ERR;               // Exit: no errors
+    return MATRIX_KBD_NO_ERR;    // Exit: no errors
 }
 
 /**
-* \brief Get the key by its identifier (row and column)
-* \param[in] kbd -  the matrix keyboard descriptor to get the key;
-* \param[in] column - the number of the column;
-* \param[in] row - the number of the row;
-* \param[out] key - buffer for the key descriptor;
-* \return MatrixKbdErr_e - error code. non-zero = an error has occurred;
+ * \brief Get the key by its identifier (row and column)
+ * \param[in] kbd -  the matrix keyboard descriptor to get the key;
+ * \param[in] column - the number of the column;
+ * \param[in] row - the number of the row;
+ * \param[out] key - buffer for the key descriptor;
+ * \return MatrixKbdErr_e - error code. non-zero = an error has occurred;
  */
 MatrixKbdErr_e MatrixKbdKeyGet(const MatrixKbd_s* const kbd, const MatrixKbdColumn_t column, const MatrixKbdRow_t row, MatrixKbdKey_s** const key)
 {
     /* Checking of params */
-    if((NULL == kbd) ||
-       (NULL == key) ||
-       (column > MATRIX_KBD_COLUMNS_COUNT_MAX) ||
-       (row > MATRIX_KBD_ROWS_COUNT_MAX))
+    if ((NULL == kbd) ||
+        (NULL == key) ||
+        (column > MATRIX_KBD_COLUMNS_COUNT_MAX) ||
+        (row > MATRIX_KBD_ROWS_COUNT_MAX))
     {
-        return MATRIX_KBD_INVALID_ARGS_ERR; // Exit: Error: Invalid args
+        return MATRIX_KBD_INVALID_ARGS_ERR;    // Exit: Error: Invalid args
     }
 
-    *key = (MatrixKbdKey_s*)&kbd->keys[row][column];
+    *key = (MatrixKbdKey_s*) &kbd->keys [row][column];
 
-    return MATRIX_KBD_NO_ERR;               // Exit: no errors
+    return MATRIX_KBD_NO_ERR;    // Exit: no errors
 }
 
 /**
-* \brief Get number of keys in the keyboard
-* \param[in] kbd - the matrix keyboard descriptor;
-* \param[out] keysCount - buffer for the number of keys;
-* \return MatrixKbdErr_e - error code. non-zero = an error has occurred;
+ * \brief Get number of keys in the keyboard
+ * \param[in] kbd - the matrix keyboard descriptor;
+ * \param[out] keysCount - buffer for the number of keys;
+ * \return MatrixKbdErr_e - error code. non-zero = an error has occurred;
  */
 MatrixKbdErr_e MatrixKbdKeysCountGet(const MatrixKbd_s* const kbd, uint32_t* const keysCount)
 {
     /* Checking of params */
-    if((NULL == kbd) ||
-       (NULL == keysCount))
+    if ((NULL == kbd) ||
+        (NULL == keysCount))
     {
-        return MATRIX_KBD_INVALID_ARGS_ERR; // Exit: Error: Invalid args
+        return MATRIX_KBD_INVALID_ARGS_ERR;    // Exit: Error: Invalid args
     }
 
     *keysCount = kbd->rowsCount * kbd->columnsCount;
 
-    return MATRIX_KBD_NO_ERR;               // Exit: no errors
+    return MATRIX_KBD_NO_ERR;    // Exit: no errors
 }
 
 /**
-* \brief This function attaches the callback to the key
-* \param [in] kbd - the matrix keyboard descriptor;
-* \param [in] cbType - the callback type;
-* \param [in] cb - the callback;
-* \param [out] no;
-* \return MatrixKbdErr_e - error code. non-zero = an error has occurred;
+ * \brief This function attaches the callback to the key
+ * \param [in] kbd - the matrix keyboard descriptor;
+ * \param [in] cbType - the callback type;
+ * \param [in] cb - the callback;
+ * \param [out] no;
+ * \return MatrixKbdErr_e - error code. non-zero = an error has occurred;
  */
 MatrixKbdErr_e MatrixKbdAllKeyCbAttach(MatrixKbd_s* const kbd, const MatrixKbdKeyCbType_e cbType, const MatrixKbdKeyCb_f cb)
 {
     /* Checking of params */
-    if((NULL == kbd) ||
-       (NULL == cb))
+    if ((NULL == kbd) ||
+        (NULL == cb))
     {
-        return MATRIX_KBD_INVALID_ARGS_ERR; // Exit: Error: Invalid args
+        return MATRIX_KBD_INVALID_ARGS_ERR;    // Exit: Error: Invalid args
     }
 
     /* Check is init obj */
-    if(kbd->osal == NULL)
+    if (kbd->osal == NULL)
     {
-        return MATRIX_KBD_NOT_INIT_ERR;         // Exit: Error: Not init
+        return MATRIX_KBD_NOT_INIT_ERR;    // Exit: Error: Not init
     }
 
     /* Lock the keyboard */
@@ -612,22 +608,22 @@ MatrixKbdErr_e MatrixKbdAllKeyCbAttach(MatrixKbd_s* const kbd, const MatrixKbdKe
 
     /* Attach the callback */
     uint8_t cbAttached = 0;
-    if(cbType & MATRIX_KBD_KEY_PRESSED_CB_TYPE)
+    if (cbType & MATRIX_KBD_KEY_PRESSED_CB_TYPE)
     {
         kbd->matrixKbdAllKeyPressedCb = cb;
         cbAttached++;
     }
-    if(cbType & MATRIX_KBD_KEY_PRESSING_CB_TYPE)
+    if (cbType & MATRIX_KBD_KEY_PRESSING_CB_TYPE)
     {
         kbd->matrixKbdAllKeyPressingCb = cb;
         cbAttached++;
     }
-    if(cbType & MATRIX_KBD_KEY_RELEASED_CB_TYPE)
+    if (cbType & MATRIX_KBD_KEY_RELEASED_CB_TYPE)
     {
         kbd->matrixKbdAllKeyReleasedCb = cb;
         cbAttached++;
     }
-    if(cbType & MATRIX_KBD_KEY_UNPRESSED_CB_TYPE)
+    if (cbType & MATRIX_KBD_KEY_UNPRESSED_CB_TYPE)
     {
         kbd->matrixKbdAllKeyUnpressedCb = cb;
         cbAttached++;
@@ -637,28 +633,27 @@ MatrixKbdErr_e MatrixKbdAllKeyCbAttach(MatrixKbd_s* const kbd, const MatrixKbdKe
     matrixKbdUnlock(kbd);
 
     /* Check is attached */
-    if(!cbAttached)
+    if (!cbAttached)
     {
-        return MATRIX_KBD_INVALID_ARGS_ERR;     // Exit: Error: Invalid args
+        return MATRIX_KBD_INVALID_ARGS_ERR;    // Exit: Error: Invalid args
     }
 
-    return MATRIX_KBD_NO_ERR;                   // Exit: no errors
-
+    return MATRIX_KBD_NO_ERR;    // Exit: no errors
 }
 
 /**
-* \brief This function detaches the callback from the all keys
-* \param[in] kbd - the matrix keyboard descriptor;
-* \param[in] cbType - the callback type;
-* \param[out] no;
-* \return MatrixKbdErr_e - error code. non-zero = an error has occurred;
+ * \brief This function detaches the callback from the all keys
+ * \param[in] kbd - the matrix keyboard descriptor;
+ * \param[in] cbType - the callback type;
+ * \param[out] no;
+ * \return MatrixKbdErr_e - error code. non-zero = an error has occurred;
  */
 MatrixKbdErr_e MatrixKbdAllKeyCbDetach(MatrixKbd_s* const kbd, const MatrixKbdKeyCbType_e cbType)
 {
     /* Checking of params */
-    if(NULL == kbd)
+    if (NULL == kbd)
     {
-        return MATRIX_KBD_INVALID_ARGS_ERR;     // Exit: Error: Invalid args
+        return MATRIX_KBD_INVALID_ARGS_ERR;    // Exit: Error: Invalid args
     }
 
     /* Lock the keyboard */
@@ -666,22 +661,22 @@ MatrixKbdErr_e MatrixKbdAllKeyCbDetach(MatrixKbd_s* const kbd, const MatrixKbdKe
 
     /* Attach the callback */
     uint8_t cbAttached = 0;
-    if(cbType & MATRIX_KBD_KEY_PRESSED_CB_TYPE)
+    if (cbType & MATRIX_KBD_KEY_PRESSED_CB_TYPE)
     {
         kbd->matrixKbdAllKeyPressedCb = NULL;
         cbAttached++;
     }
-    if(cbType & MATRIX_KBD_KEY_PRESSING_CB_TYPE)
+    if (cbType & MATRIX_KBD_KEY_PRESSING_CB_TYPE)
     {
-        kbd->matrixKbdAllKeyPressingCb= NULL;
+        kbd->matrixKbdAllKeyPressingCb = NULL;
         cbAttached++;
     }
-    if(cbType & MATRIX_KBD_KEY_RELEASED_CB_TYPE)
+    if (cbType & MATRIX_KBD_KEY_RELEASED_CB_TYPE)
     {
         kbd->matrixKbdAllKeyReleasedCb = NULL;
         cbAttached++;
     }
-    if(cbType & MATRIX_KBD_KEY_UNPRESSED_CB_TYPE)
+    if (cbType & MATRIX_KBD_KEY_UNPRESSED_CB_TYPE)
     {
         kbd->matrixKbdAllKeyUnpressedCb = NULL;
         cbAttached++;
@@ -691,43 +686,43 @@ MatrixKbdErr_e MatrixKbdAllKeyCbDetach(MatrixKbd_s* const kbd, const MatrixKbdKe
     matrixKbdUnlock(kbd);
 
     /* Check is attached */
-    if(!cbAttached)
+    if (!cbAttached)
     {
-        return MATRIX_KBD_INVALID_ARGS_ERR;     // Exit: Error: Invalid args
+        return MATRIX_KBD_INVALID_ARGS_ERR;    // Exit: Error: Invalid args
     }
 
-    return MATRIX_KBD_NO_ERR;                   // Exit: no errors
+    return MATRIX_KBD_NO_ERR;    // Exit: no errors
 }
 
 /**
-* \brief This function attaches the callback to the key
-* \param [in] kbd - the matrix keyboard descriptor;
-* \param [in] key - the key descriptor;
-* \param [in] cbType - the callback type;
-* \param [in] cb - the callback;
-* \param [out] no;
-* \return MatrixKbdErr_e - error code. non-zero = an error has occurred;
+ * \brief This function attaches the callback to the key
+ * \param [in] kbd - the matrix keyboard descriptor;
+ * \param [in] key - the key descriptor;
+ * \param [in] cbType - the callback type;
+ * \param [in] cb - the callback;
+ * \param [out] no;
+ * \return MatrixKbdErr_e - error code. non-zero = an error has occurred;
  */
-MatrixKbdErr_e MatrixKbdKeyCbAttach (MatrixKbd_s* const kbd, MatrixKbdKey_s* const key, const MatrixKbdKeyCbType_e cbType, const MatrixKbdKeyCb_f cb)
+MatrixKbdErr_e MatrixKbdKeyCbAttach(MatrixKbd_s* const kbd, MatrixKbdKey_s* const key, const MatrixKbdKeyCbType_e cbType, const MatrixKbdKeyCb_f cb)
 {
     /* Checking of params */
-    if((NULL == kbd) ||
-       (NULL == cb) ||
-       (NULL == key))
+    if ((NULL == kbd) ||
+        (NULL == cb) ||
+        (NULL == key))
     {
-        return MATRIX_KBD_INVALID_ARGS_ERR; // Exit: Error: Invalid args
+        return MATRIX_KBD_INVALID_ARGS_ERR;    // Exit: Error: Invalid args
     }
 
     /* Check is init obj */
-    if(kbd->osal == NULL)
+    if (kbd->osal == NULL)
     {
-        return MATRIX_KBD_NOT_INIT_ERR;         // Exit: Error: Not init
+        return MATRIX_KBD_NOT_INIT_ERR;    // Exit: Error: Not init
     }
 
     /* Check this key is part of kbd */
-    if(kbd != (MatrixKbd_s* )key->parent)
+    if (kbd != (MatrixKbd_s*) key->parent)
     {
-        return MATRIX_KBD_INVALID_ARGS_ERR; // Exit: Error: Invalid args
+        return MATRIX_KBD_INVALID_ARGS_ERR;    // Exit: Error: Invalid args
     }
 
     /* Lock the keyboard */
@@ -735,22 +730,22 @@ MatrixKbdErr_e MatrixKbdKeyCbAttach (MatrixKbd_s* const kbd, MatrixKbdKey_s* con
 
     /* Attach the callback */
     uint8_t cbAttached = 0;
-    if(cbType & MATRIX_KBD_KEY_PRESSED_CB_TYPE)
+    if (cbType & MATRIX_KBD_KEY_PRESSED_CB_TYPE)
     {
         key->matrixKbdKeyPressedCb = cb;
         cbAttached++;
     }
-    if(cbType & MATRIX_KBD_KEY_PRESSING_CB_TYPE)
+    if (cbType & MATRIX_KBD_KEY_PRESSING_CB_TYPE)
     {
         key->matrixKbdKeyPressingCb = cb;
         cbAttached++;
     }
-    if(cbType & MATRIX_KBD_KEY_RELEASED_CB_TYPE)
+    if (cbType & MATRIX_KBD_KEY_RELEASED_CB_TYPE)
     {
         key->matrixKbdKeyReleasedCb = cb;
         cbAttached++;
     }
-    if(cbType & MATRIX_KBD_KEY_UNPRESSED_CB_TYPE)
+    if (cbType & MATRIX_KBD_KEY_UNPRESSED_CB_TYPE)
     {
         key->matrixKbdKeyUnpressedCb = cb;
         cbAttached++;
@@ -760,41 +755,41 @@ MatrixKbdErr_e MatrixKbdKeyCbAttach (MatrixKbd_s* const kbd, MatrixKbdKey_s* con
     matrixKbdUnlock(kbd);
 
     /* Check is attached */
-    if(!cbAttached)
+    if (!cbAttached)
     {
-        return MATRIX_KBD_INVALID_ARGS_ERR;     // Exit: Error: Invalid args
+        return MATRIX_KBD_INVALID_ARGS_ERR;    // Exit: Error: Invalid args
     }
 
-    return MATRIX_KBD_NO_ERR;                   // Exit: no errors
+    return MATRIX_KBD_NO_ERR;    // Exit: no errors
 }
 
 /**
-* \brief This function detaches the callback from the key
-* \param[in] kbd - the matrix keyboard descriptor;
-* \param[in] key - the key descriptor;
-* \param[in] cbType - the callback type;
-* \param[out] no;
-* \return MatrixKbdErr_e - error code. non-zero = an error has occurred;
+ * \brief This function detaches the callback from the key
+ * \param[in] kbd - the matrix keyboard descriptor;
+ * \param[in] key - the key descriptor;
+ * \param[in] cbType - the callback type;
+ * \param[out] no;
+ * \return MatrixKbdErr_e - error code. non-zero = an error has occurred;
  */
-MatrixKbdErr_e MatrixKbdKeyCbDetach(MatrixKbd_s* const kbd,  MatrixKbdKey_s* const key, const MatrixKbdKeyCbType_e cbType)
+MatrixKbdErr_e MatrixKbdKeyCbDetach(MatrixKbd_s* const kbd, MatrixKbdKey_s* const key, const MatrixKbdKeyCbType_e cbType)
 {
     /* Checking of params */
-    if((NULL == kbd) ||
-       (NULL == key))
+    if ((NULL == kbd) ||
+        (NULL == key))
     {
-        return MATRIX_KBD_INVALID_ARGS_ERR;     // Exit: Error: Invalid args
+        return MATRIX_KBD_INVALID_ARGS_ERR;    // Exit: Error: Invalid args
     }
 
     /* Check this key is part of kbd */
-    if(kbd != (MatrixKbd_s* )key->parent)
+    if (kbd != (MatrixKbd_s*) key->parent)
     {
-        return MATRIX_KBD_INVALID_ARGS_ERR;     // Exit: Error: Invalid args
+        return MATRIX_KBD_INVALID_ARGS_ERR;    // Exit: Error: Invalid args
     }
 
     /* Check is init obj */
-    if(kbd->osal == NULL)
+    if (kbd->osal == NULL)
     {
-        return MATRIX_KBD_NOT_INIT_ERR;         // Exit: Error: Not init
+        return MATRIX_KBD_NOT_INIT_ERR;    // Exit: Error: Not init
     }
 
     /* Lock the keyboard */
@@ -802,22 +797,22 @@ MatrixKbdErr_e MatrixKbdKeyCbDetach(MatrixKbd_s* const kbd,  MatrixKbdKey_s* con
 
     /* Attach the callback */
     uint8_t cbAttached = 0;
-    if(cbType & MATRIX_KBD_KEY_PRESSED_CB_TYPE)
+    if (cbType & MATRIX_KBD_KEY_PRESSED_CB_TYPE)
     {
         key->matrixKbdKeyPressedCb = NULL;
         cbAttached++;
     }
-    if(cbType & MATRIX_KBD_KEY_PRESSING_CB_TYPE)
+    if (cbType & MATRIX_KBD_KEY_PRESSING_CB_TYPE)
     {
         key->matrixKbdKeyPressingCb = NULL;
         cbAttached++;
     }
-    if(cbType & MATRIX_KBD_KEY_RELEASED_CB_TYPE)
+    if (cbType & MATRIX_KBD_KEY_RELEASED_CB_TYPE)
     {
         key->matrixKbdKeyReleasedCb = NULL;
         cbAttached++;
     }
-    if(cbType & MATRIX_KBD_KEY_UNPRESSED_CB_TYPE)
+    if (cbType & MATRIX_KBD_KEY_UNPRESSED_CB_TYPE)
     {
         key->matrixKbdKeyUnpressedCb = NULL;
         cbAttached++;
@@ -827,36 +822,36 @@ MatrixKbdErr_e MatrixKbdKeyCbDetach(MatrixKbd_s* const kbd,  MatrixKbdKey_s* con
     matrixKbdUnlock(kbd);
 
     /* Check is attached */
-    if(!cbAttached)
+    if (!cbAttached)
     {
-        return MATRIX_KBD_INVALID_ARGS_ERR;     // Exit: Error: Invalid args
+        return MATRIX_KBD_INVALID_ARGS_ERR;    // Exit: Error: Invalid args
     }
 
-    return MATRIX_KBD_NO_ERR;                   // Exit: no errors
+    return MATRIX_KBD_NO_ERR;    // Exit: no errors
 }
 
 /**
-* \brief Get the last pressed keys from the keyboard
-* \note Maximum number of keys is limited by the size of the buffer (default = 32 keys)
-* \param[in] kbd - the matrix keyboard descriptor;
-* \param[out] keys - the buffer for the keys;
-* \param[in] numberOfLastPressedKeys - the number of the last pressed keys;
-* \return MatrixKbdErr_e - error code. non-zero = an error has occurred;
+ * \brief Get the last pressed keys from the keyboard
+ * \note Maximum number of keys is limited by the size of the buffer (default = 32 keys)
+ * \param[in] kbd - the matrix keyboard descriptor;
+ * \param[out] keys - the buffer for the keys;
+ * \param[in] numberOfLastPressedKeys - the number of the last pressed keys;
+ * \return MatrixKbdErr_e - error code. non-zero = an error has occurred;
  */
 MatrixKbdErr_e MatrixKbdKeyLastPressedGet(const MatrixKbd_s* const kbd, MatrixKbdKey_s** const keys, const uint8_t numberOfLastPressedKeys)
 {
     /* Checking of params */
-    if((NULL == kbd) ||
-       (NULL == keys) ||
-       (0 == numberOfLastPressedKeys))
+    if ((NULL == kbd) ||
+        (NULL == keys) ||
+        (0 == numberOfLastPressedKeys))
     {
-        return MATRIX_KBD_INVALID_ARGS_ERR;     // Exit: Error: Invalid args
+        return MATRIX_KBD_INVALID_ARGS_ERR;    // Exit: Error: Invalid args
     }
 
     /* Check is init obj */
-    if(kbd->osal == NULL)
+    if (kbd->osal == NULL)
     {
-        return MATRIX_KBD_NOT_INIT_ERR;         // Exit: Error: Not init
+        return MATRIX_KBD_NOT_INIT_ERR;    // Exit: Error: Not init
     }
 
     /* Lock the keyboard */
@@ -864,10 +859,10 @@ MatrixKbdErr_e MatrixKbdKeyLastPressedGet(const MatrixKbd_s* const kbd, MatrixKb
 
     /* Get the last pressed keys */
     uint8_t numberOfLastPressedKeysReal = 0;
-    for(uint8_t i = kbd->keyLog.start; i != kbd->keyLog.end; i = (i + 1) % MATRIX_KBD_KEY_LOG_SIZE)
+    for (uint8_t i = kbd->keyLog.start; i != kbd->keyLog.end; i = (i + 1) % MATRIX_KBD_KEY_LOG_SIZE)
     {
-        keys[numberOfLastPressedKeysReal++] = kbd->keyLog.lastPressedKey[i];
-        if(numberOfLastPressedKeysReal >= numberOfLastPressedKeys)
+        keys [numberOfLastPressedKeysReal++] = kbd->keyLog.lastPressedKey [i];
+        if (numberOfLastPressedKeysReal >= numberOfLastPressedKeys)
         {
             break;
         }
@@ -876,17 +871,16 @@ MatrixKbdErr_e MatrixKbdKeyLastPressedGet(const MatrixKbd_s* const kbd, MatrixKb
     /* Unlock the keyboard */
     matrixKbdUnlock(kbd);
 
-    return MATRIX_KBD_NO_ERR;                   // Exit: no errors
-
+    return MATRIX_KBD_NO_ERR;    // Exit: no errors
 }
 
 //============================================================================ [PRIVATE FUNCTIONS ]=================================================================================
 
 /**
-* \brief This function adds a key to the log of pressed keys
-* \param[in] kbd - the matrix keyboard descriptor;
-* \param[in] key - the key descriptor;
-* \param[out] no;
+ * \brief This function adds a key to the log of pressed keys
+ * \param[in] kbd - the matrix keyboard descriptor;
+ * \param[in] key - the key descriptor;
+ * \param[out] no;
  */
 static inline void matrixKbdKeyLogAdd(MatrixKbdKeyLog_s* const keyLog, const MatrixKbdKey_s* const key)
 {
@@ -895,7 +889,7 @@ static inline void matrixKbdKeyLogAdd(MatrixKbdKeyLog_s* const keyLog, const Mat
     MATRIX_KBD_ASSERT(key);
 
     /* Add the key to the log */
-    keyLog->lastPressedKey[keyLog->end] = (MatrixKbdKey_s*)key;
+    keyLog->lastPressedKey [keyLog->end] = (MatrixKbdKey_s*) key;
     keyLog->end = (keyLog->end + 1) % MATRIX_KBD_KEY_LOG_SIZE;
     if (keyLog->end == keyLog->start)
     {
@@ -904,8 +898,8 @@ static inline void matrixKbdKeyLogAdd(MatrixKbdKeyLog_s* const keyLog, const Mat
 }
 
 /**
-* \brief This function flushes the log of pressed keys (clears the log)
-* \param[in] kbd - the matrix keyboard descriptor;
+ * \brief This function flushes the log of pressed keys (clears the log)
+ * \param[in] kbd - the matrix keyboard descriptor;
  */
 static inline void matrixKbdLastPressedFlush(MatrixKbdKeyLog_s* const keyLog)
 {
@@ -917,13 +911,13 @@ static inline void matrixKbdLastPressedFlush(MatrixKbdKeyLog_s* const keyLog)
     keyLog->end = 0;
     for (uint8_t i = 0; i < MATRIX_KBD_KEY_LOG_SIZE; i++)
     {
-        keyLog->lastPressedKey[i] = NULL;
+        keyLog->lastPressedKey [i] = NULL;
     }
 }
 
 /**
-* \brief This function locks the keyboard
-* \param[in] kbd - the matrix keyboard descriptor;
+ * \brief This function locks the keyboard
+ * \param[in] kbd - the matrix keyboard descriptor;
  */
 static inline void matrixKbdLock(const MatrixKbd_s* const kbd)
 {
@@ -932,13 +926,13 @@ static inline void matrixKbdLock(const MatrixKbd_s* const kbd)
     MATRIX_KBD_ASSERT(kbd->osal);
 
     MatrixKbdOsalErr_e osalStatus = MatrixKbdOsalLock(kbd->osal);
-    (void)osalStatus;
+    (void) osalStatus;
     MATRIX_KBD_ASSERT(osalStatus == MATRIX_KBD_OSAL_NO_ERR);
 }
 
 /**
-* \brief This function unlocks the keyboard
-* \param[in] kbd - the matrix keyboard descriptor;
+ * \brief This function unlocks the keyboard
+ * \param[in] kbd - the matrix keyboard descriptor;
  */
 static inline void matrixKbdUnlock(const MatrixKbd_s* const kbd)
 {
@@ -947,7 +941,7 @@ static inline void matrixKbdUnlock(const MatrixKbd_s* const kbd)
     MATRIX_KBD_ASSERT(kbd->osal);
 
     MatrixKbdOsalErr_e osalStatus = MatrixKbdOsalUnlock(kbd->osal);
-    (void)osalStatus;
+    (void) osalStatus;
     MATRIX_KBD_ASSERT(osalStatus == MATRIX_KBD_OSAL_NO_ERR);
 }
 
@@ -966,19 +960,19 @@ static void matrixKbdWorker(const void* const kbdInstance)
     MATRIX_KBD_ASSERT(kbdInstance);
 
     /* Checking is init obj */
-    MatrixKbd_s* kbd = (MatrixKbd_s*)kbdInstance;
+    MatrixKbd_s* kbd = (MatrixKbd_s*) kbdInstance;
     MATRIX_KBD_ASSERT(kbd->hal);
     MATRIX_KBD_ASSERT(kbd->osal);
 
     /* Preparing the environment */
     MatrixKbdOsalErr_e osalStatus = MATRIX_KBD_OSAL_NO_ERR;
-    (void)osalStatus;
+    (void) osalStatus;
 
     /* : variables for storage and processing with state of key */
     MatrixKbdState_s currentStates = {0};
 
     /* Matrix kbd worker main loop */
-    while(1)
+    while (1)
     {
         /* Reading keyboard state in buffer */
         matrixKbdStatesPoll(kbd, &currentStates);
@@ -993,41 +987,41 @@ static void matrixKbdWorker(const void* const kbdInstance)
 }
 
 /**
-* \brief This function reads the state of the matrix keyboard
-* \note This function is called from the worker thread and is not intended for direct use.
-*       For poll need buffer for store state of key and after poll need update state of key
-* \param[in] kbd - the matrix keyboard descriptor;
-* \param[in] state - the state of the matrix keyboard;
-* \param[out] no;
+ * \brief This function reads the state of the matrix keyboard
+ * \note This function is called from the worker thread and is not intended for direct use.
+ *       For poll need buffer for store state of key and after poll need update state of key
+ * \param[in] kbd - the matrix keyboard descriptor;
+ * \param[in] state - the state of the matrix keyboard;
+ * \param[out] no;
  */
 static inline void matrixKbdStatesPoll(MatrixKbd_s* const kbd, MatrixKbdState_s* const state)
 {
     /* Checking of params */
     MATRIX_KBD_ASSERT(state);
 
-    for(MatrixKbdColumn_t columnNumber = 0; columnNumber < kbd->columnsCount; columnNumber++)
+    for (MatrixKbdColumn_t columnNumber = 0; columnNumber < kbd->columnsCount; columnNumber++)
+    {
+        MatrixKbdHalErr_e halStatus = MatrixKbdHalColumnSelect(kbd->hal, columnNumber);
+        (void) halStatus;
+        MATRIX_KBD_ASSERT(halStatus == MATRIX_KBD_HAL_NO_ERR);
+        /* : one row at a time */
+        for (MatrixKbdRow_t rowNumber = 0; rowNumber < kbd->rowsCount; rowNumber++)
         {
-            MatrixKbdHalErr_e halStatus = MatrixKbdHalColumnSelect(kbd->hal,columnNumber);
-            (void)halStatus;
-            MATRIX_KBD_ASSERT(halStatus == MATRIX_KBD_HAL_NO_ERR);
-            /* : one row at a time */
-            for(MatrixKbdRow_t rowNumber = 0; rowNumber < kbd->rowsCount; rowNumber++)
-            {
-                /* : read state */
-                halStatus = MatrixKbdHalRowStateGet(kbd->hal, rowNumber, &state->key[rowNumber][columnNumber]);
-                MATRIX_KBD_ASSERT(halStatus == MATRIX_KBD_HAL_NO_ERR);
-            }
-            halStatus = MatrixKbdHalColumnDeselect(kbd->hal,columnNumber);
+            /* : read state */
+            halStatus = MatrixKbdHalRowStateGet(kbd->hal, rowNumber, &state->key [rowNumber][columnNumber]);
             MATRIX_KBD_ASSERT(halStatus == MATRIX_KBD_HAL_NO_ERR);
         }
+        halStatus = MatrixKbdHalColumnDeselect(kbd->hal, columnNumber);
+        MATRIX_KBD_ASSERT(halStatus == MATRIX_KBD_HAL_NO_ERR);
+    }
 }
 
 /**
-* \brief This function updates the state of the matrix keyboard
-* \note This function is called from the worker thread and is not intended for direct use.
-* \param[in] kbd - the matrix keyboard descriptor;
-* \param[in] state - the state of the matrix keyboard (buffer, after poll);
-* \param[out] no;
+ * \brief This function updates the state of the matrix keyboard
+ * \note This function is called from the worker thread and is not intended for direct use.
+ * \param[in] kbd - the matrix keyboard descriptor;
+ * \param[in] state - the state of the matrix keyboard (buffer, after poll);
+ * \param[out] no;
  */
 static inline void matrixKbdStatesUpdate(MatrixKbd_s* const kbd, const MatrixKbdState_s* const stateCurrent)
 {
@@ -1039,82 +1033,80 @@ static inline void matrixKbdStatesUpdate(MatrixKbd_s* const kbd, const MatrixKbd
     matrixKbdLock(kbd);
 
     /* Update the state of the keyboard */
-    for(MatrixKbdRow_t row = 0; row < kbd->rowsCount; row++)
+    for (MatrixKbdRow_t row = 0; row < kbd->rowsCount; row++)
     {
-        for(MatrixKbdColumn_t column = 0; column < kbd->columnsCount; column++)
+        for (MatrixKbdColumn_t column = 0; column < kbd->columnsCount; column++)
         {
-            if(stateCurrent->key[row][column] != kbd->state.key[row][column])
+            if (stateCurrent->key [row][column] != kbd->state.key [row][column])
             {
-                if(stateCurrent->key[row][column] == true)
+                if (stateCurrent->key [row][column] == true)
                 {
                     /* Add the key to the log of pressed keys */
-                    matrixKbdKeyLogAdd(&kbd->keyLog, &kbd->keys[row][column]);
+                    matrixKbdKeyLogAdd(&kbd->keyLog, &kbd->keys [row][column]);
 
                     /* Update the state of the key */
-                    kbd->keys[row][column].state = true;
+                    kbd->keys [row][column].state = true;
 
                     /* CallBack for all key */
-                    if(kbd->matrixKbdAllKeyPressingCb != NULL)
+                    if (kbd->matrixKbdAllKeyPressingCb != NULL)
                     {
-                        kbd->matrixKbdAllKeyPressingCb(kbd, &kbd->keys[row][column], MATRIX_KBD_KEY_PRESSING_CB_TYPE);
+                        kbd->matrixKbdAllKeyPressingCb(kbd, &kbd->keys [row][column], MATRIX_KBD_KEY_PRESSING_CB_TYPE);
                     }
 
-                    if(kbd->keys[row][column].matrixKbdKeyPressingCb != NULL)
+                    if (kbd->keys [row][column].matrixKbdKeyPressingCb != NULL)
                     {
-                        kbd->keys[row][column].matrixKbdKeyPressingCb(kbd, &kbd->keys[row][column], MATRIX_KBD_KEY_PRESSING_CB_TYPE);
+                        kbd->keys [row][column].matrixKbdKeyPressingCb(kbd, &kbd->keys [row][column], MATRIX_KBD_KEY_PRESSING_CB_TYPE);
                     }
-
-
                 }
                 else
                 {
                     /* Update the state of the key */
-                    kbd->keys[row][column].state = false;
+                    kbd->keys [row][column].state = false;
 
                     /* CallBack for all key */
-                    if(kbd->matrixKbdAllKeyReleasedCb != NULL)
+                    if (kbd->matrixKbdAllKeyReleasedCb != NULL)
                     {
-                        kbd->matrixKbdAllKeyReleasedCb(kbd, &kbd->keys[row][column], MATRIX_KBD_KEY_RELEASED_CB_TYPE);
+                        kbd->matrixKbdAllKeyReleasedCb(kbd, &kbd->keys [row][column], MATRIX_KBD_KEY_RELEASED_CB_TYPE);
                     }
 
-                    if(kbd->keys[row][column].matrixKbdKeyReleasedCb != NULL)
+                    if (kbd->keys [row][column].matrixKbdKeyReleasedCb != NULL)
                     {
-                        kbd->keys[row][column].matrixKbdKeyReleasedCb(kbd, &kbd->keys[row][column], MATRIX_KBD_KEY_RELEASED_CB_TYPE);
+                        kbd->keys [row][column].matrixKbdKeyReleasedCb(kbd, &kbd->keys [row][column], MATRIX_KBD_KEY_RELEASED_CB_TYPE);
                     }
                 }
             }
             else
             {
-                if(stateCurrent->key[row][column] == true)
+                if (stateCurrent->key [row][column] == true)
                 {
 
                     /*CallBack for all key*/
-                    if(kbd->matrixKbdAllKeyPressedCb != NULL)
+                    if (kbd->matrixKbdAllKeyPressedCb != NULL)
                     {
-                        kbd->matrixKbdAllKeyPressedCb(kbd, &kbd->keys[row][column], MATRIX_KBD_KEY_PRESSED_CB_TYPE);
+                        kbd->matrixKbdAllKeyPressedCb(kbd, &kbd->keys [row][column], MATRIX_KBD_KEY_PRESSED_CB_TYPE);
                     }
 
-                    if(kbd->keys[row][column].matrixKbdKeyPressedCb != NULL)
+                    if (kbd->keys [row][column].matrixKbdKeyPressedCb != NULL)
                     {
-                        kbd->keys[row][column].matrixKbdKeyPressedCb(kbd, &kbd->keys[row][column], MATRIX_KBD_KEY_PRESSED_CB_TYPE);
+                        kbd->keys [row][column].matrixKbdKeyPressedCb(kbd, &kbd->keys [row][column], MATRIX_KBD_KEY_PRESSED_CB_TYPE);
                     }
                 }
                 else
                 {
                     /* CallBack for all key */
-                    if(kbd->matrixKbdAllKeyUnpressedCb!= NULL)
+                    if (kbd->matrixKbdAllKeyUnpressedCb != NULL)
                     {
-                        kbd->matrixKbdAllKeyUnpressedCb(kbd, &kbd->keys[row][column], MATRIX_KBD_KEY_UNPRESSED_CB_TYPE);
+                        kbd->matrixKbdAllKeyUnpressedCb(kbd, &kbd->keys [row][column], MATRIX_KBD_KEY_UNPRESSED_CB_TYPE);
                     }
 
-                    if(kbd->keys[row][column].matrixKbdKeyUnpressedCb != NULL)
+                    if (kbd->keys [row][column].matrixKbdKeyUnpressedCb != NULL)
                     {
-                        kbd->keys[row][column].matrixKbdKeyUnpressedCb(kbd, &kbd->keys[row][column], MATRIX_KBD_KEY_UNPRESSED_CB_TYPE);
+                        kbd->keys [row][column].matrixKbdKeyUnpressedCb(kbd, &kbd->keys [row][column], MATRIX_KBD_KEY_UNPRESSED_CB_TYPE);
                     }
                 }
             }
             /* Update the state of the key */
-            kbd->state.key[row][column] = stateCurrent->key[row][column];
+            kbd->state.key [row][column] = stateCurrent->key [row][column];
         }
     }
 

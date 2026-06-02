@@ -1,10 +1,10 @@
 /**
-* \file      matrix_kbd_osal_freertos_test.c
-* \brief     Unit test for osal freertos module of matrix kbd
-* \authors   Vladislav Kosten (vladkosten@gmail.com)
-* \warning   A warning may be placed here...
-* \bug       Bug report may be placed here...
-*/
+ * \file      matrix_kbd_osal_freertos_test.c
+ * \brief     Unit test for osal freertos module of matrix kbd
+ * \authors   Vladislav Kosten (vladkosten@gmail.com)
+ * \warning   A warning may be placed here...
+ * \bug       Bug report may be placed here...
+ */
 
 //===============================================================================[ INCLUDE ]========================================================================================
 
@@ -16,7 +16,6 @@
 #include "unity.h"
 #include "unity_fixture.h"
 
-
 //===============================================================[ INTERNAL FUNCTIONS AND OBJECTS DECLARATION ]=====================================================================
 
 static MatrixKbdOsalFreertos_s osalFreeRtosDummy = {0};
@@ -27,20 +26,15 @@ TEST_GROUP(MATRIX_KBD_OSAL_FREERTOS);
 
 //===============================================================[ SETUP / TEARDOWN ]=====================================================================
 
-
 TEST_SETUP(MATRIX_KBD_OSAL_FREERTOS)
 {
-
 }
 
 TEST_TEAR_DOWN(MATRIX_KBD_OSAL_FREERTOS)
 {
-
 }
 
 //===============================================================[ TESTS ]=====================================================================
-
-
 
 TEST(MATRIX_KBD_OSAL_FREERTOS, Init)
 {

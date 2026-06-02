@@ -29,14 +29,14 @@ static const char* s_name = "TEST_HAL";
 static MatrixKbdHalErr_e columnSelectDummy(const void* hal, const uint8_t number)
 {
     TEST_ASSERT_NOT_NULL(hal);
-    (void)number;
+    (void) number;
     return MATRIX_KBD_HAL_NO_ERR;
 }
 
 static MatrixKbdHalErr_e columnDeselectDummy(const void* hal, const uint8_t number)
 {
     TEST_ASSERT_NOT_NULL(hal);
-    (void)number;
+    (void) number;
     return MATRIX_KBD_HAL_NO_ERR;
 }
 
@@ -44,16 +44,16 @@ static MatrixKbdHalErr_e rowStateGetDummy(const void* hal, const uint8_t number,
 {
     TEST_ASSERT_NOT_NULL(hal);
     TEST_ASSERT_NOT_NULL(data);
-    (void)number;
+    (void) number;
     *data = true;
     return MATRIX_KBD_HAL_NO_ERR;
 }
 
 static const MatrixKbdHalPortable_s s_portableDummy =
-{
-    .columnSelect   = columnSelectDummy,
-    .columnDeselect = columnDeselectDummy,
-    .rowStateGet    = rowStateGetDummy,
+    {
+        .columnSelect = columnSelectDummy,
+        .columnDeselect = columnDeselectDummy,
+        .rowStateGet = rowStateGetDummy,
 };
 
 /*=============================[ TEST GROUP ]===============================*/

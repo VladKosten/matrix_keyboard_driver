@@ -48,7 +48,7 @@ static void vApplicationIdleHook(void)
 
 static void vTestRunnerTask(void* pvParameters)
 {
-    TestRunnerArgs_t* args = (TestRunnerArgs_t*)pvParameters;
+    TestRunnerArgs_t* args = (TestRunnerArgs_t*) pvParameters;
 
     s_exitCode = UnityMain(args->argc, args->argv, vTestRunnerRunAll);
 

@@ -18,20 +18,20 @@ extern "C" {
 /*========================================================[DATA TYPES DEFINITIONS]==========================================*/
 
 /**
-* \brief HAL errors enumerator
-*/
+ * \brief HAL errors enumerator
+ */
 typedef enum
 {
     MATRIX_KBD_HAL_NO_ERR = 0,          ///< Exit: no errors;
-    MATRIX_KBD_HAL_NOT_INIT_ERR, ///< Exit: not init;
+    MATRIX_KBD_HAL_NOT_INIT_ERR,        ///< Exit: not init;
     MATRIX_KBD_HAL_INVALID_ARGS_ERR,    ///< Exit: error - invalid pointers;
     MATRIX_KBD_HAL_PORT_LAYER_ERR       ///< Exit: error - port level error;
 
 } MatrixKbdHalErr_e;
 
 /**
-* \brief HAL portable functions table
-*/
+ * \brief HAL portable functions table
+ */
 typedef struct
 {
     /* HAl select column */
@@ -44,7 +44,6 @@ typedef struct
     MatrixKbdHalErr_e (*rowStateGet)(const void* const hal, const uint8_t number, bool* const data);
 
 } MatrixKbdHalPortable_s;
-
 
 /**
  * \brief Matrix keyboard HAL descriptor
@@ -98,19 +97,19 @@ MatrixKbdHalErr_e MatrixKbdHalParentGet(const MatrixKbdHal_s* const hal, void** 
 MatrixKbdHalErr_e MatrixKbdHalParentSet(MatrixKbdHal_s* const hal, const void* const parent);
 
 /**
-* \brief     Get the name of the HAL matrix keyboard
-* \param[in] hal - HAL descriptor;
-* \param[out] name - pointer to buffer that store the name;
-* \return MatrixKbdHalErr_e - error code. non-zero = an error has occurred;
+ * \brief     Get the name of the HAL matrix keyboard
+ * \param[in] hal - HAL descriptor;
+ * \param[out] name - pointer to buffer that store the name;
+ * \return MatrixKbdHalErr_e - error code. non-zero = an error has occurred;
  */
 MatrixKbdHalErr_e MatrixKbdHalNameGet(const MatrixKbdHal_s* const hal, char** const name);
 
 /**
-* \brief     Set the name of the HAL matrix keyboard
-* \param[in] hal - the HAL descriptor;
-* \param[in] name - the name of the matrix keyboard;
-* \param[out] no;
-* \return MatrixKbdHalErr_e - error code. non-zero = an error has occurred;
+ * \brief     Set the name of the HAL matrix keyboard
+ * \param[in] hal - the HAL descriptor;
+ * \param[in] name - the name of the matrix keyboard;
+ * \param[out] no;
+ * \return MatrixKbdHalErr_e - error code. non-zero = an error has occurred;
  */
 MatrixKbdHalErr_e MatrixKbdHalNameSet(MatrixKbdHal_s* const hal, const char* const name);
 
@@ -140,7 +139,6 @@ MatrixKbdHalErr_e MatrixKbdHalColumnDeselect(const MatrixKbdHal_s* const hal, co
  * \return     MatrixKbdHalErr_e error code, non zero = error;
  */
 MatrixKbdHalErr_e MatrixKbdHalRowStateGet(const MatrixKbdHal_s* const hal, const uint8_t numberOfRow, bool* const data);
-
 
 #ifdef __cplusplus
 }

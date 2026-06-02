@@ -35,14 +35,14 @@ extern "C" {
 /*========================================================[DATA TYPES DEFINITIONS]==========================================*/
 
 /**
-* \brief Port HAL errors enumerator
-*/
+ * \brief Port HAL errors enumerator
+ */
 typedef enum
 {
-    MATRIX_KBD_HAL_PORT_NO_ERR = 0,           ///< Exit: no errors
-    MATRIX_KBD_HAL_PORT_INVALID_ARGS_ERR,     ///< Exit: error - invalid pointers
-    MATRIX_KBD_HAL_PORT_INIT_ERR,             ///< The HAL PORT was not initialized
-    MATRIX_KBD_HAL_PORT_IO_ERR,               ///< IO error
+    MATRIX_KBD_HAL_PORT_NO_ERR = 0,          ///< Exit: no errors
+    MATRIX_KBD_HAL_PORT_INVALID_ARGS_ERR,    ///< Exit: error - invalid pointers
+    MATRIX_KBD_HAL_PORT_INIT_ERR,            ///< The HAL PORT was not initialized
+    MATRIX_KBD_HAL_PORT_IO_ERR,              ///< IO error
 } MatrixKbdHalPortErr_e;
 
 /**
@@ -51,14 +51,14 @@ typedef enum
 typedef struct
 {
     /* The generic HAL object must be the first! */
-    MatrixKbdHal_s base;        ///< Object parent
+    MatrixKbdHal_s base;    ///< Object parent
 
     /* The port-specific part */
-    uint8_t numberOfColumns;                                        ///< Number of hardware-accessible columns
-    uint8_t numberOfRows;                                           ///< Number of hardware-accessible rows
-    uint8_t columnsPin[MATRIX_KBD_HAL_PORT_COLUMN_COUNT_MAX];       ///< Pointer to an array that stores the MC pin number of the corresponding column
-    uint8_t rowsPin[MATRIX_KBD_HAL_PORT_ROW_COUNT_MAX];             ///< Pointer to an array that stores the MC pin number of the corresponding row
-}MatrixKbdHalPort_s;
+    uint8_t numberOfColumns;                                      ///< Number of hardware-accessible columns
+    uint8_t numberOfRows;                                         ///< Number of hardware-accessible rows
+    uint8_t columnsPin [MATRIX_KBD_HAL_PORT_COLUMN_COUNT_MAX];    ///< Pointer to an array that stores the MC pin number of the corresponding column
+    uint8_t rowsPin [MATRIX_KBD_HAL_PORT_ROW_COUNT_MAX];          ///< Pointer to an array that stores the MC pin number of the corresponding row
+} MatrixKbdHalPort_s;
 
 /*===========================================================[PUBLIC INTERFACE]=============================================*/
 
@@ -76,12 +76,12 @@ typedef struct
 
  */
 MatrixKbdHalPortErr_e MatrixKbdHalPortInit(MatrixKbdHalPort_s* const halPort,
-                                                const uint8_t countColumns,
-                                                const uint8_t countRows,
-                                                const uint8_t* const columnsPin,
-                                                const uint8_t* const rowsPin,
-                                                const void* const parent,
-                                                const char* const name);
+                                           const uint8_t countColumns,
+                                           const uint8_t countRows,
+                                           const uint8_t* const columnsPin,
+                                           const uint8_t* const rowsPin,
+                                           const void* const parent,
+                                           const char* const name);
 
 /**
  * \brief Deinit the HAL portable layer for the particular platform
@@ -96,6 +96,3 @@ MatrixKbdHalPortErr_e MatrixKbdHalPortDeinit(MatrixKbdHalPort_s* const halPort);
 #endif
 
 #endif /* MATRIX_KBD_HAL_ASF_H_ */
-
-
-

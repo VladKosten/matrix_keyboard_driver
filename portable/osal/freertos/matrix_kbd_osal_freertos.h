@@ -27,10 +27,10 @@ extern "C" {
  */
 typedef enum
 {
-    MATRIX_KBD_OSAL_FREERTOS_NO_ERR = 0,        ///< Exit: no errors
-    MATRIX_KBD_OSAL_FREERTOS_INVALID_ARGS_ERR,  ///< Exit: error - invalid pointers
-    MATRIX_KBD_OSAL_FREERTOS_NOT_INIT_ERR,      ///< Exit: error - init error
-    MATRIX_KBD_OSAL_FREERTOS_CALL_FROM_ISR_ERR, ///< Exit: error - call from isr
+    MATRIX_KBD_OSAL_FREERTOS_NO_ERR = 0,           ///< Exit: no errors
+    MATRIX_KBD_OSAL_FREERTOS_INVALID_ARGS_ERR,     ///< Exit: error - invalid pointers
+    MATRIX_KBD_OSAL_FREERTOS_NOT_INIT_ERR,         ///< Exit: error - init error
+    MATRIX_KBD_OSAL_FREERTOS_CALL_FROM_ISR_ERR,    ///< Exit: error - call from isr
 
 } MatrixKbdOsalFreertosErr_e;
 
@@ -44,9 +44,9 @@ typedef UBaseType_t MatrixKbdOsalFreertosThreadPriority_t;
  */
 typedef struct
 {
-    char*                                   name;             ///< A descriptive name for the task
-    size_t                                  stackSize;        ///< Stack size in bytes
-    MatrixKbdOsalFreertosThreadPriority_t   threadPriority;   ///< Priority at which the task is created
+    char* name;                                              ///< A descriptive name for the task
+    size_t stackSize;                                        ///< Stack size in bytes
+    MatrixKbdOsalFreertosThreadPriority_t threadPriority;    ///< Priority at which the task is created
 
 } MatrixKbdOsalFreertosThreadCfg_s;
 
@@ -58,7 +58,7 @@ typedef struct
     // Do not move the base structure from the first position
     MatrixKbdOsal_s base;
 
-    TickType_t  lastWakeTime;
+    TickType_t lastWakeTime;
 
     // Optional fields
     MatrixKbdOsalFreertosThreadCfg_s threadCfg;
@@ -76,9 +76,7 @@ typedef struct
  * \param[out]  no;
  * \return      MatrixKbdOsalFreertosErr_e  - error code. non-zero = an error has occurred;
  */
-MatrixKbdOsalFreertosErr_e MatrixKbdOsalFreertosInit(MatrixKbdOsalFreertos_s *const osalFreeRtos, const MatrixKbdOsalFreertosThreadCfg_s* const threadCfg,
-                                                                                                  const void *const parent,
-                                                                                                  const char* const name);
+MatrixKbdOsalFreertosErr_e MatrixKbdOsalFreertosInit(MatrixKbdOsalFreertos_s* const osalFreeRtos, const MatrixKbdOsalFreertosThreadCfg_s* const threadCfg, const void* const parent, const char* const name);
 
 /**
  * \brief       Deinitialize the matrix kbd FreeRTOS osal instance;
@@ -86,13 +84,10 @@ MatrixKbdOsalFreertosErr_e MatrixKbdOsalFreertosInit(MatrixKbdOsalFreertos_s *co
  * \param[out]  no;
  * \return      MatrixKbdOsalFreertosErr_e  - error code. non-zero = an error has occurred;
  */
-MatrixKbdOsalFreertosErr_e MatrixKbdOsalFreertosDeinit(MatrixKbdOsalFreertos_s *const osalFreeRtos);
+MatrixKbdOsalFreertosErr_e MatrixKbdOsalFreertosDeinit(MatrixKbdOsalFreertos_s* const osalFreeRtos);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* MATRIX_KBD_OSAL_FREERTOS_H_ */
-
-
-

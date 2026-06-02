@@ -28,7 +28,7 @@ static const char* s_name = "TEST_OSAL";
 
 static void threadWorkerDummy(const void* kbd)
 {
-    (void)kbd;
+    (void) kbd;
 }
 
 static MatrixKbdOsalErr_e threadResumeDummy(const void* osal)
@@ -46,7 +46,7 @@ static MatrixKbdOsalErr_e threadSuspendDummy(const void* osal)
 static MatrixKbdOsalErr_e threadDelayDummy(const void* osal, const uint32_t msDelay)
 {
     TEST_ASSERT_NOT_NULL(osal);
-    (void)msDelay;
+    (void) msDelay;
     return MATRIX_KBD_OSAL_NO_ERR;
 }
 
@@ -63,12 +63,12 @@ static MatrixKbdOsalErr_e unlockDummy(const void* osal)
 }
 
 static const MatrixKbdOsalPortable_s s_portableDummy =
-{
-    .threadResume  = threadResumeDummy,
-    .threadSuspend = threadSuspendDummy,
-    .threadDelay   = threadDelayDummy,
-    .lock          = lockDummy,
-    .unlock        = unlockDummy,
+    {
+        .threadResume = threadResumeDummy,
+        .threadSuspend = threadSuspendDummy,
+        .threadDelay = threadDelayDummy,
+        .lock = lockDummy,
+        .unlock = unlockDummy,
 };
 
 /*=============================[ TEST GROUP ]===============================*/
@@ -82,8 +82,8 @@ TEST_SETUP(MATRIX_KBD_OSAL)
     MatrixKbdOsalErr_e status = MatrixKbdOsalInit(&s_osal, &s_parent, s_name);
     TEST_ASSERT_EQUAL(MATRIX_KBD_OSAL_NO_ERR, status);
     s_osal.portable = &s_portableDummy;
-    s_osal.threadHandle = (void*)0x1;
-    s_osal.mutexHandle = (void*)0x1;
+    s_osal.threadHandle = (void*) 0x1;
+    s_osal.mutexHandle = (void*) 0x1;
 }
 
 TEST_TEAR_DOWN(MATRIX_KBD_OSAL)
