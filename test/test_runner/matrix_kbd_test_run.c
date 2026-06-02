@@ -33,6 +33,14 @@ static int s_exitCode = 0;
 
 /*========================================================[ INTERNAL FUNCTIONS ]============================================*/
 
+static void vTestRunnerRunAll(void)
+{
+    RUN_TEST_GROUP(MATRIX_KBD_OSAL);
+    RUN_TEST_GROUP(MATRIX_KBD_OSAL_FREERTOS);
+    RUN_TEST_GROUP(MATRIX_KBD_HAL);
+    RUN_TEST_GROUP(MATRIX_KBD);
+}
+
 static void vApplicationIdleHook(void)
 {
     usleep(15000);
@@ -45,14 +53,6 @@ static void vTestRunnerTask(void* pvParameters)
     s_exitCode = UnityMain(args->argc, args->argv, vTestRunnerRunAll);
 
     vTaskEndScheduler();
-}
-
-static void vTestRunnerRunAll(void)
-{
-    RUN_TEST_GROUP(MATRIX_KBD_OSAL);
-    RUN_TEST_GROUP(MATRIX_KBD_OSAL_FREERTOS);
-    RUN_TEST_GROUP(MATRIX_KBD_HAL);
-    RUN_TEST_GROUP(MATRIX_KBD);
 }
 
 /*========================================================[ PUBLIC FUNCTIONS ]=============================================*/
